@@ -8,6 +8,7 @@ enum ViewType: String, CaseIterable, Identifiable {
     case transcribeAudio = "Transcribe Audio"
     case history = "History"
     case notes = "Notes"
+    case dos = "Dos"
     case models = "AI Models"
     case enhancement = "Enhancement"
     case powerMode = "Power Mode"
@@ -25,6 +26,7 @@ enum ViewType: String, CaseIterable, Identifiable {
         case .transcribeAudio: return "waveform.circle.fill"
         case .history: return "doc.text.fill"
         case .notes: return "note.text"
+        case .dos: return "video.badge.waveform"
         case .models: return "brain.head.profile"
         case .enhancement: return "wand.and.stars"
         case .powerMode: return "sparkles.square.fill.on.square"
@@ -191,6 +193,8 @@ struct ContentView: View {
                 .foregroundColor(.secondary)
         case .notes:
             NotesView()
+        case .dos:
+            DosView()
         case .audioInput:
             AudioInputSettingsView()
         case .dictionary:

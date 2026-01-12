@@ -63,6 +63,7 @@ class HotkeyManager: ObservableObject {
     private var keyPressEventTime: TimeInterval?
     private let briefPressThreshold = 0.5
     private var isHandsFreeMode = false
+    private var shiftWasHeldOnFirstTap = false
 
     // Debounce for Fn key
     private var fnDebounceTask: Task<Void, Never>?
@@ -75,6 +76,7 @@ class HotkeyManager: ObservableObject {
     private var shortcutCurrentKeyState = false
     private var lastShortcutTriggerTime: Date?
     private let shortcutCooldownInterval: TimeInterval = 0.5
+    private var shortcutShiftWasHeldOnFirstTap = false
 
     enum HotkeyOption: String, CaseIterable {
         case none = "none"
@@ -339,7 +341,13 @@ class HotkeyManager: ObservableObject {
 
             if isHandsFreeMode {
                 isHandsFreeMode = false
-                whisperState.isNotesMode = true  // Tap-tap mode: save as note
+                // Second tap - just stop recording (screen recording already started on first tap if Shift was held)
+                if shiftWasHeldOnFirstTap {
+                    // isDosMode was already set when screen recording started
+                    shiftWasHeldOnFirstTap = false
+                } else {
+                    whisperState.isNotesMode = true  // Tap-tap mode: save as note
+                }
                 guard canProcessHotkeyAction else { return }
                 await whisperState.handleToggleMiniRecorder()
                 return
@@ -347,6 +355,7 @@ class HotkeyManager: ObservableObject {
 
             if !whisperState.isMiniRecorderVisible {
                 whisperState.isNotesMode = false  // Starting new recording
+                whisperState.isDosMode = false
                 guard canProcessHotkeyAction else { return }
                 await whisperState.handleToggleMiniRecorder()
             }
@@ -355,9 +364,21 @@ class HotkeyManager: ObservableObject {
                 let pressDuration = eventTime - startTime
 
                 if pressDuration < briefPressThreshold {
+                    // Check if Shift is currently held
+                    let shiftHeld = NSEvent.modifierFlags.contains(.shift)
+                    shiftWasHeldOnFirstTap = shiftHeld
                     isHandsFreeMode = true
+
+                    // If Shift is held, start screen recording NOW (audio is already recording)
+                    if shiftHeld {
+                        whisperState.isDosMode = true
+                        Task {
+                            await whisperState.startScreenRecordingForDosMode()
+                        }
+                    }
                 } else {
                     whisperState.isNotesMode = false  // Hold-and-release mode: paste to cursor
+                    whisperState.isDosMode = false
                     guard canProcessHotkeyAction else { return }
                     await whisperState.handleToggleMiniRecorder()
                 }
@@ -380,7 +401,13 @@ class HotkeyManager: ObservableObject {
 
         if isShortcutHandsFreeMode {
             isShortcutHandsFreeMode = false
-            whisperState.isNotesMode = true  // Tap-tap mode: save as note
+            // Second tap - just stop recording (screen recording already started on first tap if Shift was held)
+            if shortcutShiftWasHeldOnFirstTap {
+                // isDosMode was already set when screen recording started
+                shortcutShiftWasHeldOnFirstTap = false
+            } else {
+                whisperState.isNotesMode = true  // Tap-tap mode: save as note
+            }
             guard canProcessHotkeyAction else { return }
             await whisperState.handleToggleMiniRecorder()
             return
@@ -388,6 +415,7 @@ class HotkeyManager: ObservableObject {
 
         if !whisperState.isMiniRecorderVisible {
             whisperState.isNotesMode = false  // Starting new recording
+            whisperState.isDosMode = false
             guard canProcessHotkeyAction else { return }
             await whisperState.handleToggleMiniRecorder()
         }
@@ -401,9 +429,21 @@ class HotkeyManager: ObservableObject {
             let pressDuration = eventTime - startTime
 
             if pressDuration < briefPressThreshold {
+                // Check if Shift is currently held
+                let shiftHeld = NSEvent.modifierFlags.contains(.shift)
+                shortcutShiftWasHeldOnFirstTap = shiftHeld
                 isShortcutHandsFreeMode = true
+
+                // If Shift is held, start screen recording NOW (audio is already recording)
+                if shiftHeld {
+                    whisperState.isDosMode = true
+                    Task {
+                        await whisperState.startScreenRecordingForDosMode()
+                    }
+                }
             } else {
                 whisperState.isNotesMode = false  // Hold-and-release mode: paste to cursor
+                whisperState.isDosMode = false
                 guard canProcessHotkeyAction else { return }
                 await whisperState.handleToggleMiniRecorder()
             }

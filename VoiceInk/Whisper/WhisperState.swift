@@ -28,6 +28,7 @@ class WhisperState: NSObject, ObservableObject {
     @Published var miniRecorderError: String?
     @Published var shouldCancelRecording = false
     @Published var isNotesMode = false  // Set by HotkeyManager for tap-tap mode to save as note
+    @Published var isDosMode = false  // Set by HotkeyManager for Shift+tap-tap mode to save as Do with screen recording
 
 
     @Published var recorderType: String = UserDefaults.standard.string(forKey: "RecorderType") ?? "mini" {
@@ -61,7 +62,9 @@ class WhisperState: NSObject, ObservableObject {
     
     var whisperContext: WhisperContext?
     let recorder = Recorder()
+    let screenRecordingService = ScreenRecordingService()
     var recordedFile: URL? = nil
+    var recordedVideoFile: URL? = nil
     let whisperPrompt = WhisperPrompt()
     
     // Prompt detection service for trigger word handling
@@ -142,6 +145,12 @@ class WhisperState: NSObject, ObservableObject {
     func toggleRecord(powerModeId: UUID? = nil) async {
         if recordingState == .recording {
             await recorder.stopRecording()
+
+            // Stop screen recording if it was active (Dos mode)
+            if screenRecordingService.isRecording {
+                recordedVideoFile = try? await screenRecordingService.stopRecording()
+            }
+
             if let recordedFile {
                 if !shouldCancelRecording {
                     let audioAsset = AVURLAsset(url: recordedFile)
@@ -386,7 +395,55 @@ class WhisperState: NSObject, ObservableObject {
         if await checkCancellationAndCleanup() { return }
 
         if var textToPaste = finalPastedText, transcription.transcriptionStatus == TranscriptionStatus.completed.rawValue {
-            if isNotesMode {
+            if isDosMode {
+                // Save as Do with screen recording
+                // Validate video file exists and has content
+                var validVideoURL: String? = nil
+                var thumbnailData: Data? = nil
+
+                if let videoURL = recordedVideoFile {
+                    let attributes = try? FileManager.default.attributesOfItem(atPath: videoURL.path)
+                    let fileSize = attributes?[.size] as? Int64 ?? 0
+                    if fileSize > 0 {
+                        validVideoURL = videoURL.absoluteString
+                        thumbnailData = screenRecordingService.extractThumbnail(from: videoURL)
+                        logger.info("✅ Video file validated: \(fileSize) bytes")
+                    } else {
+                        logger.warning("⚠️ Video file is empty or missing, not saving video URL")
+                    }
+                } else {
+                    logger.warning("⚠️ No video file URL recorded")
+                }
+
+                let doItem = Do(
+                    text: transcription.text,
+                    duration: transcription.duration,
+                    enhancedText: transcription.enhancedText,
+                    videoFileURL: validVideoURL,
+                    audioFileURL: transcription.audioFileURL,
+                    thumbnailData: thumbnailData,
+                    transcriptionModelName: transcription.transcriptionModelName,
+                    aiEnhancementModelName: transcription.aiEnhancementModelName,
+                    promptName: transcription.promptName,
+                    transcriptionDuration: transcription.transcriptionDuration,
+                    enhancementDuration: transcription.enhancementDuration
+                )
+                modelContext.insert(doItem)
+                try? modelContext.save()
+
+                // Delete the temporary Transcription object (we don't need it in history)
+                modelContext.delete(transcription)
+                try? modelContext.save()
+
+                // Post notification for Dos UI to refresh
+                NotificationCenter.default.post(name: .doCreated, object: doItem)
+
+                // Reset dos mode and video file
+                isDosMode = false
+                recordedVideoFile = nil
+
+                // DO NOT paste to cursor - saved as Do
+            } else if isNotesMode {
                 // Save as Note instead of pasting to cursor
                 let note = Note(
                     text: transcription.text,
@@ -449,6 +506,36 @@ class WhisperState: NSObject, ObservableObject {
 
     func getEnhancementService() -> AIEnhancementService? {
         return enhancementService
+    }
+
+    /// Start screen recording for Dos mode (called from HotkeyManager when Shift+tap-tap is detected)
+    func startScreenRecordingForDosMode() async {
+        // Wait for recording state to stabilize (audio recording starts async)
+        var attempts = 0
+        while recordingState != .recording && attempts < 10 {
+            try? await Task.sleep(nanoseconds: 50_000_000) // 50ms
+            attempts += 1
+        }
+
+        guard recordingState == .recording else {
+            logger.error("❌ Cannot start screen recording: audio not recording after waiting (\(attempts) attempts)")
+            NotificationManager.shared.showNotification(
+                title: "Screen recording failed - audio not ready",
+                type: .error
+            )
+            return
+        }
+
+        do {
+            recordedVideoFile = try await screenRecordingService.startRecording()
+            logger.info("🎬 Screen recording started for Dos mode (waited \(attempts) attempts)")
+        } catch {
+            logger.error("❌ Failed to start screen recording: \(error.localizedDescription)")
+            NotificationManager.shared.showNotification(
+                title: "Screen recording failed",
+                type: .error
+            )
+        }
     }
     
     private func checkCancellationAndCleanup() async -> Bool {
