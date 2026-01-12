@@ -27,6 +27,7 @@ class WhisperState: NSObject, ObservableObject {
     @Published var clipboardMessage = ""
     @Published var miniRecorderError: String?
     @Published var shouldCancelRecording = false
+    @Published var isNotesMode = false  // Set by HotkeyManager for tap-tap mode to save as note
 
 
     @Published var recorderType: String = UserDefaults.standard.string(forKey: "RecorderType") ?? "mini" {
@@ -385,21 +386,51 @@ class WhisperState: NSObject, ObservableObject {
         if await checkCancellationAndCleanup() { return }
 
         if var textToPaste = finalPastedText, transcription.transcriptionStatus == TranscriptionStatus.completed.rawValue {
-            if case .trialExpired = licenseViewModel.licenseState {
-                textToPaste = """
-                    Your trial has expired. Upgrade to VoiceInk Pro at tryvoiceink.com/buy
-                    \n\(textToPaste)
-                    """
-            }
+            if isNotesMode {
+                // Save as Note instead of pasting to cursor
+                let note = Note(
+                    text: transcription.text,
+                    duration: transcription.duration,
+                    enhancedText: transcription.enhancedText,
+                    audioFileURL: transcription.audioFileURL,
+                    transcriptionModelName: transcription.transcriptionModelName,
+                    aiEnhancementModelName: transcription.aiEnhancementModelName,
+                    promptName: transcription.promptName,
+                    transcriptionDuration: transcription.transcriptionDuration,
+                    enhancementDuration: transcription.enhancementDuration
+                )
+                modelContext.insert(note)
+                try? modelContext.save()
 
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                CursorPaster.pasteAtCursor(textToPaste + " ")
+                // Delete the temporary Transcription object (we don't need it in history)
+                modelContext.delete(transcription)
+                try? modelContext.save()
 
-                let powerMode = PowerModeManager.shared
-                if let activeConfig = powerMode.currentActiveConfiguration, activeConfig.isAutoSendEnabled {
-                    // Slight delay to ensure the paste operation completes
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        CursorPaster.pressEnter()
+                // Post notification for Notes UI to refresh
+                NotificationCenter.default.post(name: .noteCreated, object: note)
+
+                // Reset notes mode
+                isNotesMode = false
+
+                // DO NOT paste to cursor - just saved as note
+            } else {
+                // Original paste behavior
+                if case .trialExpired = licenseViewModel.licenseState {
+                    textToPaste = """
+                        Your trial has expired. Upgrade to VoiceInk Pro at tryvoiceink.com/buy
+                        \n\(textToPaste)
+                        """
+                }
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    CursorPaster.pasteAtCursor(textToPaste + " ")
+
+                    let powerMode = PowerModeManager.shared
+                    if let activeConfig = powerMode.currentActiveConfiguration, activeConfig.isAutoSendEnabled {
+                        // Slight delay to ensure the paste operation completes
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                            CursorPaster.pressEnter()
+                        }
                     }
                 }
             }

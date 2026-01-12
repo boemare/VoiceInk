@@ -339,12 +339,14 @@ class HotkeyManager: ObservableObject {
 
             if isHandsFreeMode {
                 isHandsFreeMode = false
+                whisperState.isNotesMode = true  // Tap-tap mode: save as note
                 guard canProcessHotkeyAction else { return }
                 await whisperState.handleToggleMiniRecorder()
                 return
             }
 
             if !whisperState.isMiniRecorderVisible {
+                whisperState.isNotesMode = false  // Starting new recording
                 guard canProcessHotkeyAction else { return }
                 await whisperState.handleToggleMiniRecorder()
             }
@@ -355,6 +357,7 @@ class HotkeyManager: ObservableObject {
                 if pressDuration < briefPressThreshold {
                     isHandsFreeMode = true
                 } else {
+                    whisperState.isNotesMode = false  // Hold-and-release mode: paste to cursor
                     guard canProcessHotkeyAction else { return }
                     await whisperState.handleToggleMiniRecorder()
                 }
@@ -377,12 +380,14 @@ class HotkeyManager: ObservableObject {
 
         if isShortcutHandsFreeMode {
             isShortcutHandsFreeMode = false
+            whisperState.isNotesMode = true  // Tap-tap mode: save as note
             guard canProcessHotkeyAction else { return }
             await whisperState.handleToggleMiniRecorder()
             return
         }
 
         if !whisperState.isMiniRecorderVisible {
+            whisperState.isNotesMode = false  // Starting new recording
             guard canProcessHotkeyAction else { return }
             await whisperState.handleToggleMiniRecorder()
         }
@@ -398,6 +403,7 @@ class HotkeyManager: ObservableObject {
             if pressDuration < briefPressThreshold {
                 isShortcutHandsFreeMode = true
             } else {
+                whisperState.isNotesMode = false  // Hold-and-release mode: paste to cursor
                 guard canProcessHotkeyAction else { return }
                 await whisperState.handleToggleMiniRecorder()
             }

@@ -41,6 +41,7 @@ struct VoiceInkApp: App {
         let logger = Logger(subsystem: "com.prakashjoshipax.voiceink", category: "Initialization")
         let schema = Schema([
             Transcription.self,
+            Note.self,
             VocabularyWord.self,
             WordReplacement.self
         ])
@@ -135,7 +136,7 @@ struct VoiceInkApp: App {
             let dictionaryStoreURL = appSupportURL.appendingPathComponent("dictionary.store")
 
             // Transcript configuration
-            let transcriptSchema = Schema([Transcription.self])
+            let transcriptSchema = Schema([Transcription.self, Note.self])
             let transcriptConfig = ModelConfiguration(
                 "default",
                 schema: transcriptSchema,
@@ -166,7 +167,7 @@ struct VoiceInkApp: App {
     private static func createInMemoryContainer(schema: Schema, logger: Logger) -> ModelContainer? {
         do {
             // Transcript configuration
-            let transcriptSchema = Schema([Transcription.self])
+            let transcriptSchema = Schema([Transcription.self, Note.self])
             let transcriptConfig = ModelConfiguration(
                 "default",
                 schema: transcriptSchema,
