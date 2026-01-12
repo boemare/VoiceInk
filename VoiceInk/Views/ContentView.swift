@@ -6,7 +6,7 @@ import KeyboardShortcuts
 enum ViewType: String, CaseIterable, Identifiable {
     case metrics = "Dashboard"
     case transcribeAudio = "Transcribe Audio"
-    case history = "History"
+    case history = "Quotes"
     case notes = "Notes"
     case dos = "Dos"
     case models = "AI Models"
@@ -24,7 +24,7 @@ enum ViewType: String, CaseIterable, Identifiable {
         switch self {
         case .metrics: return "gauge.medium"
         case .transcribeAudio: return "waveform.circle.fill"
-        case .history: return "doc.text.fill"
+        case .history: return "text.quote"
         case .notes: return "note.text"
         case .dos: return "video.badge.waveform"
         case .models: return "brain.head.profile"
@@ -110,25 +110,11 @@ struct ContentView: View {
 
                 ForEach(visibleViewTypes) { viewType in
                     Section {
-                        if viewType == .history {
-                            Button(action: {
-                                HistoryWindowController.shared.showHistoryWindow(
-                                    modelContainer: modelContext.container,
-                                    whisperState: whisperState
-                                )
-                            }) {
-                                SidebarItemView(viewType: viewType)
-                            }
-                            .buttonStyle(.plain)
-                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                            .listRowSeparator(.hidden)
-                        } else {
-                            NavigationLink(value: viewType) {
-                                SidebarItemView(viewType: viewType)
-                            }
-                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                            .listRowSeparator(.hidden)
+                        NavigationLink(value: viewType) {
+                            SidebarItemView(viewType: viewType)
                         }
+                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                        .listRowSeparator(.hidden)
                     }
                 }
             }
@@ -157,11 +143,8 @@ struct ContentView: View {
                     selectedView = .models
                 case "VoiceInk Pro":
                     selectedView = .license
-                case "History":
-                    HistoryWindowController.shared.showHistoryWindow(
-                        modelContainer: modelContext.container,
-                        whisperState: whisperState
-                    )
+                case "History", "Snippets", "Quotes":
+                    selectedView = .history
                 case "Permissions":
                     selectedView = .permissions
                 case "Enhancement":
@@ -189,8 +172,7 @@ struct ContentView: View {
         case .transcribeAudio:
             AudioTranscribeView()
         case .history:
-            Text("History")
-                .foregroundColor(.secondary)
+            TranscriptionHistoryView()
         case .notes:
             NotesView()
         case .dos:
