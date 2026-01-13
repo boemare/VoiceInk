@@ -47,8 +47,8 @@ struct TranscriptionSegment: Codable, Identifiable, Hashable {
     }
 }
 
-/// Result from the diarization engine
-struct DiarizationResult {
+/// Result from the diarization engine (named to avoid collision with FluidAudio.DiarizationResult)
+struct SpeakerDiarizationResult {
     let segments: [SpeakerSegment]
     let speakerCount: Int
     let processingDuration: TimeInterval

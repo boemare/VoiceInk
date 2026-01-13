@@ -52,7 +52,7 @@ struct TranscriptMerger {
     /// Based on timestamp overlap between diarization and transcription
     static func assignSpeakerLabels(
         transcriptSegments: [WhisperTimestampedSegment],
-        diarizationResult: DiarizationResult
+        diarizationResult: SpeakerDiarizationResult
     ) -> [TranscriptionSegment] {
         var labeled: [TranscriptionSegment] = []
 
@@ -79,7 +79,7 @@ struct TranscriptMerger {
     /// Find which speaker is active at a given timestamp
     private static func findSpeaker(
         at time: TimeInterval,
-        in segments: [DiarizationResult.SpeakerSegment]
+        in segments: [SpeakerDiarizationResult.SpeakerSegment]
     ) -> Int {
         for segment in segments {
             if time >= segment.startTime && time <= segment.endTime {
@@ -92,7 +92,7 @@ struct TranscriptMerger {
     /// Find confidence for speaker at given timestamp
     private static func findConfidence(
         at time: TimeInterval,
-        in segments: [DiarizationResult.SpeakerSegment]
+        in segments: [SpeakerDiarizationResult.SpeakerSegment]
     ) -> Float? {
         for segment in segments {
             if time >= segment.startTime && time <= segment.endTime {

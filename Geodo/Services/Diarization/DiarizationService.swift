@@ -88,7 +88,7 @@ class DiarizationService: ObservableObject {
     }
 
     /// Run speaker diarization on audio file using FluidAudio
-    private func runDiarization(on audioURL: URL) async throws -> DiarizationResult {
+    private func runDiarization(on audioURL: URL) async throws -> SpeakerDiarizationResult {
         let startTime = Date()
         logger.info("Running speaker diarization on \(audioURL.lastPathComponent)...")
 
@@ -101,12 +101,12 @@ class DiarizationService: ObservableObject {
 
         let processingDuration = Date().timeIntervalSince(startTime)
 
-        // Map FluidAudio TimedSpeakerSegment to our DiarizationResult.SpeakerSegment
-        let segments = fluidResult.segments.map { segment -> DiarizationResult.SpeakerSegment in
+        // Map FluidAudio TimedSpeakerSegment to our SpeakerDiarizationResult.SpeakerSegment
+        let segments = fluidResult.segments.map { segment -> SpeakerDiarizationResult.SpeakerSegment in
             // Parse speaker ID from string (e.g., "SPEAKER_0" -> 0)
             let speakerIdInt = parseSpeakerId(segment.speakerId)
 
-            return DiarizationResult.SpeakerSegment(
+            return SpeakerDiarizationResult.SpeakerSegment(
                 speakerId: speakerIdInt,
                 startTime: TimeInterval(segment.startTimeSeconds),
                 endTime: TimeInterval(segment.endTimeSeconds),
@@ -119,7 +119,7 @@ class DiarizationService: ObservableObject {
 
         logger.info("Diarization complete: \(segments.count) segments, \(uniqueSpeakers) speakers in \(String(format: "%.2f", processingDuration))s")
 
-        return DiarizationResult(
+        return SpeakerDiarizationResult(
             segments: segments,
             speakerCount: uniqueSpeakers,
             processingDuration: processingDuration
