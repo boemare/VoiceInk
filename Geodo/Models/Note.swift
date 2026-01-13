@@ -16,7 +16,7 @@ final class Note {
     var enhancementDuration: TimeInterval?
 
     // Meeting-specific fields
-    var isMeeting: Bool
+    var isMeeting: Bool = false
     var systemAudioFileURL: String?
     var sourceApp: String?
     var participants: [String]?
@@ -24,7 +24,7 @@ final class Note {
     // Diarization fields
     var conversationSegmentsData: Data?  // JSON-encoded [TranscriptionSegment]
     var speakerMapData: Data?            // JSON-encoded [String: String] for speaker labels
-    var hasDiarization: Bool
+    var hasDiarization: Bool = false
 
     // Computed property for decoded conversation segments
     var conversationSegments: [TranscriptionSegment]? {
