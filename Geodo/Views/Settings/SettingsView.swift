@@ -14,6 +14,7 @@ struct SettingsView: View {
     @ObservedObject private var soundManager = SoundManager.shared
     @ObservedObject private var mediaController = MediaController.shared
     @ObservedObject private var playbackController = PlaybackController.shared
+    @State private var isFillerWordRemovalEnabled = FillerWordFilterService.shared.isEnabled
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = true
     @AppStorage("autoUpdateCheck") private var autoUpdateCheck = true
     @AppStorage("enableAnnouncements") private var enableAnnouncements = true
@@ -277,6 +278,26 @@ struct SettingsView: View {
                             }
                         }
 
+                    }
+                }
+
+                SettingsSection(
+                    icon: "waveform.badge.minus",
+                    title: "Transcription Quality",
+                    subtitle: "Improve transcription output"
+                ) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Toggle(isOn: $isFillerWordRemovalEnabled) {
+                            Text("Remove filler words")
+                        }
+                        .toggleStyle(.switch)
+                        .onChange(of: isFillerWordRemovalEnabled) { _, newValue in
+                            FillerWordFilterService.shared.isEnabled = newValue
+                        }
+                        .help("Automatically remove filler words like 'um', 'uh', 'like', 'you know' from transcriptions")
+
+                        Text("Automatically removes common filler words (um, uh, like, you know) from your transcriptions for cleaner output.")
+                            .settingsDescription()
                     }
                 }
 

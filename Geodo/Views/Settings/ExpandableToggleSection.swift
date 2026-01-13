@@ -7,6 +7,7 @@ enum ExpandableSection: Hashable {
     case clipboardRestore
     case customCancel
     case middleClick
+    case fillerWordRemoval
 }
 
 struct ExpandableToggleSection<Content: View>: View {

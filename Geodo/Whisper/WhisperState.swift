@@ -332,6 +332,9 @@ class WhisperState: NSObject, ObservableObject {
             text = WordReplacementService.shared.applyReplacements(to: text, using: modelContext)
             logger.notice("📝 WordReplacement: \(text, privacy: .public)")
 
+            text = FillerWordFilterService.shared.removeFillerWords(from: text)
+            logger.notice("📝 FillerWordFilter: \(text, privacy: .public)")
+
             let audioAsset = AVURLAsset(url: url)
             let actualDuration = (try? CMTimeGetSeconds(await audioAsset.load(.duration))) ?? 0.0
             
@@ -426,7 +429,8 @@ class WhisperState: NSObject, ObservableObject {
                     aiEnhancementModelName: transcription.aiEnhancementModelName,
                     promptName: transcription.promptName,
                     transcriptionDuration: transcription.transcriptionDuration,
-                    enhancementDuration: transcription.enhancementDuration
+                    enhancementDuration: transcription.enhancementDuration,
+                    videoDescriptionStatus: validVideoURL != nil ? VideoDescriptionStatus.pending.rawValue : nil
                 )
                 modelContext.insert(doItem)
                 try? modelContext.save()
@@ -437,6 +441,15 @@ class WhisperState: NSObject, ObservableObject {
 
                 // Post notification for Dos UI to refresh
                 NotificationCenter.default.post(name: .doCreated, object: doItem)
+
+                // Trigger background video description generation
+                if let videoURLString = validVideoURL, let videoURL = URL(string: videoURLString) {
+                    let doId = doItem.id
+                    Task.detached { [weak self] in
+                        guard let self = self else { return }
+                        await self.generateVideoDescription(forDoId: doId, videoURL: videoURL)
+                    }
+                }
 
                 // Reset dos mode and video file
                 isDosMode = false
@@ -548,5 +561,47 @@ class WhisperState: NSObject, ObservableObject {
 
     private func cleanupAndDismiss() async {
         await dismissMiniRecorder()
+    }
+
+    // MARK: - Video Description Generation
+
+    private func generateVideoDescription(forDoId doId: UUID, videoURL: URL) async {
+        logger.info("🎬 Starting video description generation for Do: \(doId)")
+
+        // Fetch the Do object from the database
+        let fetchDescriptor = FetchDescriptor<Do>(predicate: #Predicate { $0.id == doId })
+        guard let doItem = try? modelContext.fetch(fetchDescriptor).first else {
+            logger.error("❌ Could not find Do with id: \(doId)")
+            return
+        }
+
+        // Update status to processing
+        await MainActor.run {
+            doItem.videoDescriptionStatus = VideoDescriptionStatus.processing.rawValue
+            try? modelContext.save()
+        }
+
+        do {
+            let result = try await VideoAnalysisService.shared.analyzeVideo(at: videoURL)
+
+            await MainActor.run {
+                doItem.videoDescription = result.description
+                doItem.videoDescriptionStatus = VideoDescriptionStatus.completed.rawValue
+                doItem.videoDescriptionModelName = result.modelName
+                try? modelContext.save()
+
+                NotificationCenter.default.post(name: .doDescriptionUpdated, object: doItem)
+                logger.info("✅ Video description completed for Do: \(doId)")
+            }
+        } catch {
+            await MainActor.run {
+                doItem.videoDescriptionStatus = VideoDescriptionStatus.failed.rawValue
+                doItem.videoDescriptionError = error.localizedDescription
+                try? modelContext.save()
+
+                NotificationCenter.default.post(name: .doDescriptionUpdated, object: doItem)
+                logger.error("❌ Video description failed for Do: \(doId): \(error.localizedDescription)")
+            }
+        }
     }
 }
