@@ -474,7 +474,7 @@ class WhisperState: NSObject, ObservableObject {
                 // Original paste behavior
                 if case .trialExpired = licenseViewModel.licenseState {
                     textToPaste = """
-                        Your trial has expired. Upgrade to VoiceInk Pro at tryvoiceink.com/buy
+                        Your trial has expired. Upgrade to VoiceInk Beta at tryvoiceink.com/buy
                         \n\(textToPaste)
                         """
                 }

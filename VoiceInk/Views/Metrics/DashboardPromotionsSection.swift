@@ -33,8 +33,8 @@ struct DashboardPromotionsSection: View {
                 if shouldShowUpgradePromotion {
                     DashboardPromotionCard(
                         badge: "30% OFF",
-                        title: "Unlock VoiceInk Pro For Less",
-                        message: "Share VoiceInk on your socials, and instantly unlock a 30% discount on VoiceInk Pro.",
+                        title: "Unlock VoiceInk Beta For Less",
+                        message: "Share VoiceInk on your socials, and instantly unlock a 30% discount on VoiceInk Beta.",
                         accentSymbol: "megaphone.fill",
                         glowColor: Color(red: 0.08, green: 0.48, blue: 0.85),
                         actionTitle: "Share & Unlock",

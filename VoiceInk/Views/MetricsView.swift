@@ -18,11 +18,11 @@ struct MetricsView: View {
                     message: "You have \(daysRemaining) days left in your trial",
                     type: daysRemaining <= 2 ? .warning : .info,
                     onAddLicenseKey: {
-                        // Post notification to navigate to VoiceInk Pro tab
+                        // Post notification to navigate to VoiceInk Beta tab
                         NotificationCenter.default.post(
                             name: .navigateToDestination,
                             object: nil,
-                            userInfo: ["destination": "VoiceInk Pro"]
+                            userInfo: ["destination": "VoiceInk Beta"]
                         )
                     }
                 )
@@ -36,7 +36,7 @@ struct MetricsView: View {
                         NotificationCenter.default.post(
                             name: .navigateToDestination,
                             object: nil,
-                            userInfo: ["destination": "VoiceInk Pro"]
+                            userInfo: ["destination": "VoiceInk Beta"]
                         )
                     }
                 )

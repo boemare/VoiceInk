@@ -16,7 +16,7 @@ enum ViewType: String, CaseIterable, Identifiable {
     case audioInput = "Audio Input"
     case dictionary = "Dictionary"
     case settings = "Settings"
-    case license = "VoiceInk Pro"
+    case license = "VoiceInk Beta"
 
     var id: String { rawValue }
 
@@ -94,7 +94,7 @@ struct ContentView: View {
                 return false  // Transcribe Audio is now under Settings
             }
             if viewType == .metrics {
-                return false  // Dashboard is now inside VoiceInk Pro
+                return false  // Dashboard is now inside VoiceInk Beta
             }
             return true
         }
@@ -104,7 +104,7 @@ struct ContentView: View {
         NavigationSplitView {
             List(selection: $selectedView) {
                 Section {
-                    // App Header - clickable to open VoiceInk Pro
+                    // App Header - clickable to open VoiceInk Beta
                     Button(action: {
                         selectedView = .license
                     }) {
@@ -121,7 +121,7 @@ struct ContentView: View {
                                 .font(.system(size: 14, weight: .semibold))
 
                             if case .licensed = licenseViewModel.licenseState {
-                                Text("PRO")
+                                Text("BETA")
                                     .font(.system(size: 9, weight: .heavy))
                                     .foregroundStyle(.white)
                                     .padding(.horizontal, 4)
@@ -186,7 +186,7 @@ struct ContentView: View {
                     selectedView = .settings
                 case "AI Models":
                     selectedView = .models
-                case "VoiceInk Pro":
+                case "VoiceInk Beta":
                     selectedView = .license
                 case "History", "Snippets", "Quotes":
                     selectedView = .history
