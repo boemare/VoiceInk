@@ -161,12 +161,19 @@ class VideoAnalysisService {
         var parts: [GeminiGeneratePart] = []
 
         let prompt = """
-        These are \(frames.count) frames extracted from a screen recording.
-        Describe what is happening in this recording. Focus on:
-        - The application or website being used
-        - Actions being taken by the user
-        - Key visual elements and UI interactions
-        Be concise but comprehensive.
+        These are \(frames.count) frames extracted from a screen recording, shown in chronological order.
+
+        Describe what happens throughout the recording as a timeline of events. Format as:
+
+        **Summary:** One sentence overview of what this recording shows.
+
+        **Timeline:**
+        - [Start] What the user begins doing
+        - [Middle] Key actions and changes that occur
+        - [End] How the recording concludes
+
+        Focus on the application/website being used, user actions, and any notable UI changes or results.
+        Be concise but capture the progression of events.
         """
         parts.append(GeminiGeneratePart(text: prompt, fileData: nil, inlineData: nil))
 
@@ -323,11 +330,17 @@ class VideoAnalysisService {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
         let prompt = """
-        Describe what is happening in this screen recording. Focus on:
-        - The application or website being used
-        - Actions being taken by the user
-        - Key visual elements and UI interactions
-        Be concise but comprehensive.
+        Describe what happens throughout this screen recording as a timeline of events. Format as:
+
+        **Summary:** One sentence overview of what this recording shows.
+
+        **Timeline:**
+        - [0:00] What the user begins doing
+        - [timestamps] Key actions and changes that occur
+        - [end] How the recording concludes
+
+        Focus on the application/website being used, user actions, and any notable UI changes or results.
+        Be concise but capture the progression of events with approximate timestamps.
         """
 
         let requestBody = GeminiGenerateRequest(
