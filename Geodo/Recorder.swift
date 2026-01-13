@@ -16,6 +16,14 @@ class Recorder: NSObject, ObservableObject {
     private let playbackController = PlaybackController.shared
     @Published var audioMeter = AudioMeter(averagePower: 0, peakPower: 0)
     @Published var systemAudioMeter = AudioMeter(averagePower: 0, peakPower: 0)
+    @Published var lastDualRecordingResult: DualRecordingResult?
+
+    // Live transcription state
+    @Published var liveTranscript: String = ""
+    @Published var liveChunks: [TranscribedChunk] = []
+    @Published var isLiveTranscriptionEnabled: Bool = false
+    private var chunkedTranscriptionService: ChunkedTranscriptionService?
+    private var transcriptionCallback: (([Float]) async throws -> String)?
     private var audioLevelCheckTask: Task<Void, Never>?
     private var audioMeterUpdateTask: Task<Void, Never>?
     private var audioRestorationTask: Task<Void, Never>?
@@ -30,7 +38,30 @@ class Recorder: NSObject, ObservableObject {
     enum RecorderError: Error {
         case couldNotStartRecording
     }
-    
+
+    /// Result from dual-track recording (mic + system audio)
+    struct DualRecordingResult {
+        let micAudioURL: URL
+        let systemAudioURL: URL?
+    }
+
+    /// Configure live transcription before starting recording
+    /// - Parameter transcribe: Closure that takes Float samples and returns transcribed text
+    func enableLiveTranscription(transcribe: @escaping ([Float]) async throws -> String) {
+        self.transcriptionCallback = transcribe
+        self.isLiveTranscriptionEnabled = true
+        self.liveTranscript = ""
+        self.liveChunks = []
+        logger.info("Live transcription enabled")
+    }
+
+    /// Disable live transcription
+    func disableLiveTranscription() {
+        self.transcriptionCallback = nil
+        self.isLiveTranscriptionEnabled = false
+        logger.info("Live transcription disabled")
+    }
+
     override init() {
         super.init()
         setupDeviceChangeObserver()
@@ -109,7 +140,7 @@ class Recorder: NSObject, ObservableObject {
         }
     }
 
-    func startRecording(toOutputFile url: URL, captureSystemAudio: Bool = false) async throws {
+    func startRecording(toOutputFile url: URL, captureSystemAudio: Bool = false, systemAudioOutputURL: URL? = nil) async throws {
         deviceManager.isRecordingActive = true
 
         let currentDeviceID = deviceManager.getCurrentDevice()
@@ -130,6 +161,7 @@ class Recorder: NSObject, ObservableObject {
         hasDetectedAudioInCurrentSession = false
         isCapturingSystemAudio = captureSystemAudio
         finalOutputURL = url
+        lastDualRecordingResult = nil
 
         let deviceID = deviceManager.getCurrentDevice()
 
@@ -137,12 +169,20 @@ class Recorder: NSObject, ObservableObject {
             let coreAudioRecorder = CoreAudioRecorder()
             recorder = coreAudioRecorder
 
-            // If capturing system audio, write mic to temp file for later mixing
+            // If capturing system audio, write to provided URLs (permanent) or temp files (legacy)
             if captureSystemAudio {
-                let tempDir = FileManager.default.temporaryDirectory
-                let sessionID = UUID().uuidString
-                micAudioURL = tempDir.appendingPathComponent("mic_\(sessionID).wav")
-                systemAudioURL = tempDir.appendingPathComponent("system_\(sessionID).wav")
+                // Use provided URLs for permanent storage, or fall back to temp files
+                if let sysURL = systemAudioOutputURL {
+                    // New behavior: write directly to permanent paths
+                    micAudioURL = url
+                    systemAudioURL = sysURL
+                } else {
+                    // Legacy behavior: write to temp files for mixing
+                    let tempDir = FileManager.default.temporaryDirectory
+                    let sessionID = UUID().uuidString
+                    micAudioURL = tempDir.appendingPathComponent("mic_\(sessionID).wav")
+                    systemAudioURL = tempDir.appendingPathComponent("system_\(sessionID).wav")
+                }
 
                 try coreAudioRecorder.startRecording(toOutputFile: micAudioURL!, deviceID: deviceID)
 
@@ -154,6 +194,37 @@ class Recorder: NSObject, ObservableObject {
                 logger.info("Started dual recording (mic + system audio)")
             } else {
                 try coreAudioRecorder.startRecording(toOutputFile: url, deviceID: deviceID)
+            }
+
+            // Set up live transcription if enabled
+            if isLiveTranscriptionEnabled, let transcribeCallback = transcriptionCallback {
+                liveTranscript = ""
+                liveChunks = []
+
+                let service = ChunkedTranscriptionService()
+                chunkedTranscriptionService = service
+
+                // Set up sample streaming from CoreAudioRecorder to ChunkedTranscriptionService
+                coreAudioRecorder.setSampleStreamCallback { [weak self] samples in
+                    guard let self = self else { return }
+                    Task {
+                        await service.feedSamples(samples)
+                    }
+                }
+
+                // Start the chunked transcription service
+                await service.start(
+                    transcribe: transcribeCallback,
+                    onChunk: { [weak self] chunk in
+                        guard let self = self else { return }
+                        Task { @MainActor in
+                            self.liveChunks.append(chunk)
+                            self.liveTranscript = self.liveChunks.map { $0.text }.joined(separator: " ")
+                        }
+                    }
+                )
+
+                logger.info("Live transcription started")
             }
 
             audioRestorationTask?.cancel()
@@ -216,10 +287,20 @@ class Recorder: NSObject, ObservableObject {
         }
     }
 
-    /// Async version of stopRecording that handles audio mixing
+    /// Async version of stopRecording that handles dual audio recording
     func stopRecordingAsync() async {
         audioLevelCheckTask?.cancel()
         audioMeterUpdateTask?.cancel()
+
+        // Stop live transcription if running
+        if let service = chunkedTranscriptionService {
+            await service.stop()
+            chunkedTranscriptionService = nil
+            logger.info("Live transcription stopped")
+        }
+
+        // Clear sample stream callback before stopping recorder
+        recorder?.setSampleStreamCallback(nil)
         recorder?.stopRecording()
         recorder = nil
 
@@ -228,22 +309,34 @@ class Recorder: NSObject, ObservableObject {
             try? await systemAudioCapture?.stopCapture()
             systemAudioCapture = nil
 
-            // Mix the audio tracks
             if let micURL = micAudioURL,
                let sysURL = systemAudioURL,
                let outputURL = finalOutputURL {
-                do {
-                    try await mixAudioTracks(micURL: micURL, systemURL: sysURL, outputURL: outputURL)
-                    logger.info("Mixed audio saved to: \(outputURL.path)")
-                } catch {
-                    logger.error("Failed to mix audio: \(error.localizedDescription)")
-                    // Fall back to mic-only audio
-                    try? FileManager.default.copyItem(at: micURL, to: outputURL)
-                }
+                // Check if we're using permanent paths (new behavior) or temp files (legacy)
+                let usingPermanentPaths = micURL == outputURL
 
-                // Clean up temp files
-                try? FileManager.default.removeItem(at: micURL)
-                try? FileManager.default.removeItem(at: sysURL)
+                if usingPermanentPaths {
+                    // New behavior: keep both files separate, populate result
+                    lastDualRecordingResult = DualRecordingResult(
+                        micAudioURL: micURL,
+                        systemAudioURL: sysURL
+                    )
+                    logger.info("Dual recording saved: mic=\(micURL.lastPathComponent), system=\(sysURL.lastPathComponent)")
+                } else {
+                    // Legacy behavior: mix audio tracks and delete temp files
+                    do {
+                        try await mixAudioTracks(micURL: micURL, systemURL: sysURL, outputURL: outputURL)
+                        logger.info("Mixed audio saved to: \(outputURL.path)")
+                    } catch {
+                        logger.error("Failed to mix audio: \(error.localizedDescription)")
+                        // Fall back to mic-only audio
+                        try? FileManager.default.copyItem(at: micURL, to: outputURL)
+                    }
+
+                    // Clean up temp files
+                    try? FileManager.default.removeItem(at: micURL)
+                    try? FileManager.default.removeItem(at: sysURL)
+                }
             }
 
             isCapturingSystemAudio = false

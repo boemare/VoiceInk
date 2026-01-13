@@ -110,6 +110,31 @@ actor WhisperContext {
         return transcription
     }
 
+    /// Get transcription with timestamps for each segment
+    func getTranscriptionWithTimestamps() -> [WhisperTimestampedSegment] {
+        guard let context = context else { return [] }
+        var segments: [WhisperTimestampedSegment] = []
+        let numSegments = whisper_full_n_segments(context)
+
+        for i in 0..<numSegments {
+            let text = String(cString: whisper_full_get_segment_text(context, i))
+            let t0 = whisper_full_get_segment_t0(context, i)  // Start time in centiseconds
+            let t1 = whisper_full_get_segment_t1(context, i)  // End time in centiseconds
+
+            // Convert from centiseconds to seconds
+            let startTime = TimeInterval(t0) / 100.0
+            let endTime = TimeInterval(t1) / 100.0
+
+            segments.append(WhisperTimestampedSegment(
+                text: text,
+                startTime: startTime,
+                endTime: endTime
+            ))
+        }
+
+        return segments
+    }
+
     static func createContext(path: String) async throws -> WhisperContext {
         let whisperContext = WhisperContext()
         try await whisperContext.initializeModel(path: path)

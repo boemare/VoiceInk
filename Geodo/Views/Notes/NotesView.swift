@@ -198,6 +198,13 @@ struct NotesView: View {
                 await loadInitialContent()
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .noteUpdated)) { _ in
+            // Refresh when a note is updated (e.g., diarization completed)
+            guard isViewCurrentlyVisible else { return }
+            Task {
+                await loadInitialContent()
+            }
+        }
     }
 
     private var selectionToolbar: some View {

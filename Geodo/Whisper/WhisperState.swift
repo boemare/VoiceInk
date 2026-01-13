@@ -29,6 +29,7 @@ class WhisperState: NSObject, ObservableObject {
     @Published var shouldCancelRecording = false
     @Published var isNotesMode = false  // Set by HotkeyManager for tap-tap mode to save as note
     @Published var isDosMode = false  // Set by HotkeyManager for Shift+tap-tap mode to save as Do with screen recording
+    @Published var isLiveTranscriptionEnabled = false  // Enable live transcription during recording
 
 
     @Published var recorderType: String = UserDefaults.standard.string(forKey: "RecorderType") ?? "mini" {
@@ -64,6 +65,7 @@ class WhisperState: NSObject, ObservableObject {
     let recorder = Recorder()
     let screenRecordingService = ScreenRecordingService()
     var recordedFile: URL? = nil
+    var recordedSystemAudioFile: URL? = nil  // System audio for meeting recordings
     var recordedVideoFile: URL? = nil
     let whisperPrompt = WhisperPrompt()
     
@@ -145,6 +147,7 @@ class WhisperState: NSObject, ObservableObject {
     func toggleRecord(powerModeId: UUID? = nil) async {
         if recordingState == .recording {
             await recorder.stopRecordingAsync()
+            recorder.disableLiveTranscription()
 
             // Stop screen recording if it was active (Dos mode)
             if screenRecordingService.isRecording {
@@ -194,12 +197,46 @@ class WhisperState: NSObject, ObservableObject {
                 if granted {
                     Task {
                         do {
-                            // --- Prepare permanent file URL ---
-                            let fileName = "\(UUID().uuidString).wav"
-                            let permanentURL = self.recordingsDirectory.appendingPathComponent(fileName)
-                            self.recordedFile = permanentURL
+                            // --- Prepare permanent file URLs ---
+                            let sessionID = UUID().uuidString
+                            let micFileName = "\(sessionID)_mic.wav"
+                            let micPermanentURL = self.recordingsDirectory.appendingPathComponent(micFileName)
+                            self.recordedFile = micPermanentURL
 
-                            try await self.recorder.startRecording(toOutputFile: permanentURL, captureSystemAudio: self.isNotesMode)
+                            // For notes mode (meetings), also prepare system audio URL
+                            var systemAudioURL: URL? = nil
+                            if self.isNotesMode {
+                                let systemFileName = "\(sessionID)_system.wav"
+                                systemAudioURL = self.recordingsDirectory.appendingPathComponent(systemFileName)
+                                self.recordedSystemAudioFile = systemAudioURL
+                            } else {
+                                self.recordedSystemAudioFile = nil
+                            }
+
+                            // Enable live transcription in notes mode with local models
+                            if self.isNotesMode && self.isLiveTranscriptionEnabled {
+                                if let model = self.currentTranscriptionModel, model.provider == .local {
+                                    // Set up transcription callback using the loaded whisper context
+                                    self.recorder.enableLiveTranscription { [weak self] samples in
+                                        guard let self = self,
+                                              let context = await self.whisperContext else {
+                                            return ""
+                                        }
+                                        let success = await context.fullTranscribe(samples: samples)
+                                        if success {
+                                            return await context.getTranscription()
+                                        }
+                                        return ""
+                                    }
+                                    self.logger.info("Live transcription enabled for notes mode")
+                                }
+                            }
+
+                            try await self.recorder.startRecording(
+                                toOutputFile: micPermanentURL,
+                                captureSystemAudio: self.isNotesMode,
+                                systemAudioOutputURL: systemAudioURL
+                            )
 
                             await MainActor.run {
                                 self.recordingState = .recording
@@ -457,6 +494,9 @@ class WhisperState: NSObject, ObservableObject {
                 // Detect if a meeting app is running
                 let meetingContext = MeetingAppDetectionService.shared.detectMeetingContext()
 
+                // Get system audio URL from the recorder's dual recording result
+                let systemAudioURLString = recorder.lastDualRecordingResult?.systemAudioURL?.absoluteString
+
                 let note = Note(
                     text: transcription.text,
                     duration: transcription.duration,
@@ -468,6 +508,7 @@ class WhisperState: NSObject, ObservableObject {
                     transcriptionDuration: transcription.transcriptionDuration,
                     enhancementDuration: transcription.enhancementDuration,
                     isMeeting: meetingContext?.isMeeting ?? false,
+                    systemAudioFileURL: systemAudioURLString,
                     sourceApp: meetingContext?.sourceApp
                 )
                 modelContext.insert(note)
@@ -480,8 +521,48 @@ class WhisperState: NSObject, ObservableObject {
                 // Post notification for Notes UI to refresh
                 NotificationCenter.default.post(name: .noteCreated, object: note)
 
+                // Always run diarization when system audio is present (like hyprnote approach)
+                // Mic audio = "Me", System audio = diarized for multiple speakers
+                if let micURLString = note.audioFileURL,
+                   let micURL = URL(string: micURLString),
+                   let sysURLString = note.systemAudioFileURL,
+                   let systemURL = URL(string: sysURLString) {
+
+                    // Mark as meeting since we have dual audio
+                    note.isMeeting = true
+
+                    Task {
+                        do {
+                            let segments = try await DiarizationService.shared.processMeetingRecording(
+                                micAudioURL: micURL,
+                                systemAudioURL: systemURL,
+                                transcribe: { [weak self] url in
+                                    guard let self = self else { throw DiarizationError.transcriptionFailed("Service unavailable") }
+                                    return try await self.serviceRegistry.transcribe(audioURL: url)
+                                },
+                                transcribeWithTimestamps: { [weak self] url in
+                                    guard let self = self else { throw DiarizationError.transcriptionFailed("Service unavailable") }
+                                    return try await self.serviceRegistry.transcribeWithTimestamps(audioURL: url)
+                                }
+                            )
+
+                            await MainActor.run {
+                                note.conversationSegments = segments
+                                note.hasDiarization = true
+                                try? self.modelContext.save()
+
+                                // Post notification to refresh UI with diarization results
+                                NotificationCenter.default.post(name: .noteUpdated, object: note)
+                            }
+                        } catch {
+                            self.logger.error("Diarization failed: \(error.localizedDescription)")
+                        }
+                    }
+                }
+
                 // Reset notes mode
                 isNotesMode = false
+                recordedSystemAudioFile = nil
 
                 // DO NOT paste to cursor - just saved as note
             } else {

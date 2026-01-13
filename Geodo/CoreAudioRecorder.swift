@@ -48,6 +48,10 @@ final class CoreAudioRecorder {
     private var renderBuffer: UnsafeMutablePointer<Float32>?
     private var renderBufferSize: UInt32 = 0
 
+    // Sample streaming callback for real-time transcription
+    private var sampleStreamCallback: (([Float]) -> Void)?
+    private let sampleStreamLock = NSLock()
+
     // MARK: - Initialization
 
     init() {}
@@ -146,6 +150,14 @@ final class CoreAudioRecorder {
     var isCurrentlyRecording: Bool { isRecording }
     var currentRecordingURL: URL? { recordingURL }
     var currentDevice: AudioDeviceID { currentDeviceID }
+
+    /// Set a callback to receive audio samples in real-time (for live transcription)
+    /// Samples are 16kHz mono Float32 (same format written to file)
+    func setSampleStreamCallback(_ callback: (([Float]) -> Void)?) {
+        sampleStreamLock.lock()
+        defer { sampleStreamLock.unlock() }
+        sampleStreamCallback = callback
+    }
 
     /// Switches to a new input device mid-recording without stopping the file write
     func switchDevice(to newDeviceID: AudioDeviceID) throws {
@@ -695,6 +707,20 @@ final class CoreAudioRecorder {
         let writeStatus = ExtAudioFileWrite(file, outputFrameCount, &outputBufferList)
         if writeStatus != noErr {
             logger.error("🎙️ ExtAudioFileWrite failed with status: \(writeStatus)")
+        }
+
+        // Stream samples to callback for real-time transcription
+        sampleStreamLock.lock()
+        let callback = sampleStreamCallback
+        sampleStreamLock.unlock()
+
+        if let callback = callback {
+            // Convert Int16 samples to Float for transcription
+            var floatSamples = [Float](repeating: 0, count: Int(outputFrameCount))
+            for i in 0..<Int(outputFrameCount) {
+                floatSamples[i] = Float(outputBuffer[i]) / 32767.0
+            }
+            callback(floatSamples)
         }
     }
 

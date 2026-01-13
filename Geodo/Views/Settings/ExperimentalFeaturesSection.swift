@@ -4,6 +4,7 @@ struct ExperimentalFeaturesSection: View {
     @AppStorage("isExperimentalFeaturesEnabled") private var isExperimentalFeaturesEnabled = false
     @ObservedObject private var playbackController = PlaybackController.shared
     @ObservedObject private var mediaController = MediaController.shared
+    @EnvironmentObject private var whisperState: WhisperState
     @State private var expandedSections: Set<ExpandableSection> = []
 
     var body: some View {
@@ -30,6 +31,7 @@ struct ExperimentalFeaturesSection: View {
                     .onChange(of: isExperimentalFeaturesEnabled) { _, newValue in
                         if !newValue {
                             playbackController.isPauseMediaEnabled = false
+                            whisperState.isLiveTranscriptionEnabled = false
                         }
                     }
             }
@@ -38,6 +40,30 @@ struct ExperimentalFeaturesSection: View {
                 Divider()
                     .padding(.vertical, 4)
                     .transition(.opacity.combined(with: .move(edge: .top)))
+
+                // Live Transcription Toggle
+                VStack(alignment: .leading, spacing: 8) {
+                    Toggle(isOn: $whisperState.isLiveTranscriptionEnabled) {
+                        HStack(spacing: 8) {
+                            Text("Live Transcription in Notes Mode")
+                                .font(.system(size: 13, weight: .medium))
+
+                            InfoTip(
+                                title: "Live Transcription",
+                                message: "Show real-time transcription while recording in notes mode. Only works with local Whisper models. Transcription is displayed every 4 seconds as you speak."
+                            )
+                        }
+                    }
+                    .toggleStyle(.switch)
+
+                    Text("Display live transcription during notes mode recording. Requires a local Whisper model.")
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+                        .padding(.leading, 2)
+                }
+
+                Divider()
+                    .padding(.vertical, 4)
 
                 ExpandableToggleSection(
                     section: .pauseMedia,

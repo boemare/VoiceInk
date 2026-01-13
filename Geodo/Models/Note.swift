@@ -26,6 +26,13 @@ final class Note {
     var speakerMapData: Data?            // JSON-encoded [String: String] for speaker labels
     var hasDiarization: Bool = false
 
+    // AI Enhancement fields (hyprnote-style)
+    var summary: String?
+    var actionItemsData: Data?  // JSON-encoded [String]
+    var keyPointsData: Data?    // JSON-encoded [String]
+    var enhancementStatus: String?  // "pending", "processing", "completed", "failed"
+    var enhancementError: String?
+
     // Computed property for decoded conversation segments
     var conversationSegments: [TranscriptionSegment]? {
         get {
@@ -45,6 +52,27 @@ final class Note {
         }
         set {
             speakerMapData = try? JSONEncoder().encode(newValue)
+        }
+    }
+
+    // Computed properties for AI enhancement arrays
+    var actionItems: [String]? {
+        get {
+            guard let data = actionItemsData else { return nil }
+            return try? JSONDecoder().decode([String].self, from: data)
+        }
+        set {
+            actionItemsData = try? JSONEncoder().encode(newValue)
+        }
+    }
+
+    var keyPoints: [String]? {
+        get {
+            guard let data = keyPointsData else { return nil }
+            return try? JSONDecoder().decode([String].self, from: data)
+        }
+        set {
+            keyPointsData = try? JSONEncoder().encode(newValue)
         }
     }
 
