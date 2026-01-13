@@ -122,7 +122,7 @@ struct ContentView: View {
                     .buttonStyle(.plain)
                 }
 
-                ForEach(visibleViewTypes) { viewType in
+                ForEach(visibleViewTypes.filter { $0 != .settings }) { viewType in
                     Section {
                         NavigationLink(value: viewType) {
                             SidebarItemView(viewType: viewType)
@@ -133,6 +133,22 @@ struct ContentView: View {
                 }
             }
             .listStyle(.sidebar)
+            .safeAreaInset(edge: .bottom) {
+                Button(action: {
+                    selectedView = .settings
+                }) {
+                    SidebarItemView(viewType: .settings)
+                        .padding(.horizontal, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(selectedView == .settings ? Color.accentColor : Color.clear)
+                        )
+                        .foregroundColor(selectedView == .settings ? .white : .primary)
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 8)
+            }
             .navigationTitle("VoiceInk")
             .navigationSplitViewColumnWidth(210)
         } detail: {
