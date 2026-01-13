@@ -215,7 +215,7 @@ struct DoDetailView: View {
                             }
 
                             if let description = doItem.videoDescription {
-                                Text(description)
+                                Text(markdownToAttributedString(description))
                                     .font(.system(size: 14))
                                     .lineSpacing(4)
                                     .textSelection(.enabled)
@@ -261,6 +261,18 @@ struct DoDetailView: View {
             }
         }
         .background(Color(NSColor.controlBackgroundColor))
+    }
+
+    // MARK: - Markdown Rendering
+
+    private func markdownToAttributedString(_ markdown: String) -> AttributedString {
+        do {
+            let attributed = try AttributedString(markdown: markdown, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))
+            return attributed
+        } catch {
+            // Fallback to plain text if markdown parsing fails
+            return AttributedString(markdown)
+        }
     }
 
     // MARK: - Video Description Generation
