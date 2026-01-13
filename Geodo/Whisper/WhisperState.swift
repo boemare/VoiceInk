@@ -144,7 +144,7 @@ class WhisperState: NSObject, ObservableObject {
     
     func toggleRecord(powerModeId: UUID? = nil) async {
         if recordingState == .recording {
-            await recorder.stopRecording()
+            await recorder.stopRecordingAsync()
 
             // Stop screen recording if it was active (Dos mode)
             if screenRecordingService.isRecording {
@@ -199,7 +199,7 @@ class WhisperState: NSObject, ObservableObject {
                             let permanentURL = self.recordingsDirectory.appendingPathComponent(fileName)
                             self.recordedFile = permanentURL
 
-                            try await self.recorder.startRecording(toOutputFile: permanentURL)
+                            try await self.recorder.startRecording(toOutputFile: permanentURL, captureSystemAudio: self.isNotesMode)
 
                             await MainActor.run {
                                 self.recordingState = .recording
@@ -461,6 +461,9 @@ class WhisperState: NSObject, ObservableObject {
                 // DO NOT paste to cursor - saved as Do
             } else if isNotesMode {
                 // Save as Note instead of pasting to cursor
+                // Detect if a meeting app is running
+                let meetingContext = MeetingAppDetectionService.shared.detectMeetingContext()
+
                 let note = Note(
                     text: transcription.text,
                     duration: transcription.duration,
@@ -470,7 +473,9 @@ class WhisperState: NSObject, ObservableObject {
                     aiEnhancementModelName: transcription.aiEnhancementModelName,
                     promptName: transcription.promptName,
                     transcriptionDuration: transcription.transcriptionDuration,
-                    enhancementDuration: transcription.enhancementDuration
+                    enhancementDuration: transcription.enhancementDuration,
+                    isMeeting: meetingContext?.isMeeting ?? false,
+                    sourceApp: meetingContext?.sourceApp
                 )
                 modelContext.insert(note)
                 try? modelContext.save()
