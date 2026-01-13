@@ -18,5 +18,6 @@ extension Notification.Name {
     static let openFileForTranscription = Notification.Name("openFileForTranscription")
     static let audioDeviceSwitchRequired = Notification.Name("audioDeviceSwitchRequired")
     static let noteCreated = Notification.Name("noteCreated")
+    static let meetingCreated = Notification.Name("meetingCreated")
     static let doCreated = Notification.Name("doCreated")
 }

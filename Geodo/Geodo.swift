@@ -42,6 +42,7 @@ struct GeodoApp: App {
         let schema = Schema([
             Transcription.self,
             Note.self,
+            Meeting.self,
             Do.self,
             VocabularyWord.self,
             WordReplacement.self
@@ -137,7 +138,7 @@ struct GeodoApp: App {
             let dictionaryStoreURL = appSupportURL.appendingPathComponent("dictionary.store")
 
             // Transcript configuration
-            let transcriptSchema = Schema([Transcription.self, Note.self, Do.self])
+            let transcriptSchema = Schema([Transcription.self, Note.self, Meeting.self, Do.self])
             let transcriptConfig = ModelConfiguration(
                 "default",
                 schema: transcriptSchema,
@@ -168,7 +169,7 @@ struct GeodoApp: App {
     private static func createInMemoryContainer(schema: Schema, logger: Logger) -> ModelContainer? {
         do {
             // Transcript configuration
-            let transcriptSchema = Schema([Transcription.self, Note.self, Do.self])
+            let transcriptSchema = Schema([Transcription.self, Note.self, Meeting.self, Do.self])
             let transcriptConfig = ModelConfiguration(
                 "default",
                 schema: transcriptSchema,

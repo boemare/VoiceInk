@@ -7,7 +7,7 @@ enum ViewType: String, CaseIterable, Identifiable {
     case metrics = "Dashboard"
     case transcribeAudio = "Transcribe Audio"
     case history = "Quotes"
-    case notes = "Notes"
+    case meetings = "Meetings"
     case dos = "Do's"
     case models = "AI Models"
     case enhancement = "Enhancement"
@@ -25,7 +25,7 @@ enum ViewType: String, CaseIterable, Identifiable {
         case .metrics: return "gauge.medium"
         case .transcribeAudio: return "waveform.circle.fill"
         case .history: return "text.quote"
-        case .notes: return "note.text"
+        case .meetings: return "person.2.wave.2"
         case .dos: return "video.badge.waveform"
         case .models: return "brain.head.profile"
         case .enhancement: return "wand.and.stars"
@@ -210,8 +210,8 @@ struct ContentView: View {
             AudioTranscribeView()
         case .history:
             TranscriptionHistoryView()
-        case .notes:
-            NotesView()
+        case .meetings:
+            MeetingsView()
         case .dos:
             DosView()
         case .audioInput:
