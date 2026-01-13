@@ -41,17 +41,17 @@ setup: whisper
 	@echo "Please ensure your Xcode project references the framework from this new location."
 
 build: setup
-	xcodebuild -project VoiceInk.xcodeproj -scheme VoiceInk -configuration Debug CODE_SIGN_IDENTITY="" build
+	xcodebuild -project Geodo.xcodeproj -scheme Geodo -configuration Debug CODE_SIGN_IDENTITY="" build
 
 # Run application
 run:
-	@echo "Looking for VoiceInk.app..."
-	@APP_PATH=$$(find "$$HOME/Library/Developer/Xcode/DerivedData" -name "VoiceInk.app" -type d | head -1) && \
+	@echo "Looking for Geodo.app..."
+	@APP_PATH=$$(find "$$HOME/Library/Developer/Xcode/DerivedData" -name "Geodo.app" -type d | head -1) && \
 	if [ -n "$$APP_PATH" ]; then \
 		echo "Found app at: $$APP_PATH"; \
 		open "$$APP_PATH"; \
 	else \
-		echo "VoiceInk.app not found. Please run 'make build' first."; \
+		echo "Geodo.app not found. Please run 'make build' first."; \
 		exit 1; \
 	fi
 
@@ -66,9 +66,9 @@ help:
 	@echo "Available targets:"
 	@echo "  check/healthcheck  Check if required CLI tools are installed"
 	@echo "  whisper            Clone and build whisper.cpp XCFramework"
-	@echo "  setup              Copy whisper XCFramework to VoiceInk project"
-	@echo "  build              Build the VoiceInk Xcode project"
-	@echo "  run                Launch the built VoiceInk app"
+	@echo "  setup              Copy whisper XCFramework to Geodo project"
+	@echo "  build              Build the Geodo Xcode project"
+	@echo "  run                Launch the built Geodo app"
 	@echo "  dev                Build and run the app (for development)"
 	@echo "  all                Run full build process (default)"
 	@echo "  clean              Remove build artifacts"
