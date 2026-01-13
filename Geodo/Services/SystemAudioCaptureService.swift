@@ -46,9 +46,13 @@ final class SystemAudioCaptureService: NSObject, ObservableObject {
     }
 
     deinit {
-        Task { [weak self] in
-            try? await self?.stopCapture()
+        // Synchronous cleanup only - stopCapture() should be called before releasing
+        // Do NOT create async tasks with [weak self] in deinit - causes crash
+        if isCapturing {
+            isCapturing = false
+            // stream will be released automatically
         }
+        closeFileAndResetMeters()
     }
 
     // MARK: - Public Interface

@@ -99,7 +99,7 @@ class VideoAnalysisService {
 
         return VideoAnalysisResult(
             description: description,
-            modelName: "gemini-1.5-flash-8b", // Free tier: 4M TPM, 15 RPM
+            modelName: "gemini-1.5-flash", // Free tier: 15 RPM, 1M TPM - supports vision
             duration: processingDuration
         )
     }
@@ -141,7 +141,7 @@ class VideoAnalysisService {
     // MARK: - Frame-based Analysis
 
     private func analyzeFrames(_ frames: [CGImage], apiKey: String) async throws -> String {
-        let generateURL = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=\(apiKey)")!
+        let generateURL = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=\(apiKey)")!
 
         var request = URLRequest(url: generateURL)
         request.httpMethod = "POST"
@@ -174,26 +174,35 @@ class VideoAnalysisService {
 
         let requestBody = GeminiGenerateRequest(
             contents: [GeminiGenerateContent(parts: parts)],
-            generationConfig: GenerationConfig(mediaResolution: "low")
+            generationConfig: nil
         )
 
         request.httpBody = try JSONEncoder().encode(requestBody)
 
         let (data, response) = try await URLSession.shared.data(for: request)
+        let rawResponse = String(data: data, encoding: .utf8) ?? "Unable to decode response"
+        logger.notice("Gemini frames raw response: \(rawResponse.prefix(1000), privacy: .public)")
 
         guard let httpResponse = response as? HTTPURLResponse,
               (200 ... 299).contains(httpResponse.statusCode) else {
-            let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
-            logger.error("Gemini generate content failed: \(errorMessage, privacy: .public)")
-            throw VideoAnalysisError.invalidResponse
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
+            logger.error("Gemini frames failed (HTTP \(statusCode)): \(rawResponse, privacy: .public)")
+            throw VideoAnalysisError.processingFailed("HTTP \(statusCode): \(rawResponse.prefix(500))")
         }
 
-        let generateResponse = try JSONDecoder().decode(GeminiGenerateResponse.self, from: data)
+        let generateResponse: GeminiGenerateResponse
+        do {
+            generateResponse = try JSONDecoder().decode(GeminiGenerateResponse.self, from: data)
+        } catch {
+            logger.error("Failed to decode frames response: \(error.localizedDescription, privacy: .public)")
+            throw VideoAnalysisError.processingFailed("Decode error: \(error.localizedDescription). Raw: \(rawResponse.prefix(300))")
+        }
 
         guard let candidate = generateResponse.candidates.first,
               let part = candidate.content.parts.first,
               let text = part.text, !text.isEmpty else {
-            throw VideoAnalysisError.invalidResponse
+            logger.error("No valid text in frames response: \(rawResponse, privacy: .public)")
+            throw VideoAnalysisError.processingFailed("No text in response: \(rawResponse.prefix(500))")
         }
 
         return text.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -296,7 +305,7 @@ class VideoAnalysisService {
     }
 
     private func generateVideoDescription(fileUri: String, apiKey: String) async throws -> String {
-        let generateURL = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=\(apiKey)")!
+        let generateURL = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=\(apiKey)")!
 
         var request = URLRequest(url: generateURL)
         request.httpMethod = "POST"
@@ -319,26 +328,34 @@ class VideoAnalysisService {
                     ]
                 )
             ],
-            generationConfig: GenerationConfig(mediaResolution: "low") // 75% token reduction
+            generationConfig: nil // 75% token reduction
         )
 
         request.httpBody = try JSONEncoder().encode(requestBody)
 
         let (data, response) = try await URLSession.shared.data(for: request)
+        let rawResponse = String(data: data, encoding: .utf8) ?? "Unable to decode response"
+        logger.notice("Gemini video raw response: \(rawResponse.prefix(1000), privacy: .public)")
 
         guard let httpResponse = response as? HTTPURLResponse,
               (200 ... 299).contains(httpResponse.statusCode) else {
-            let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
-            logger.error("Gemini generate content failed: \(errorMessage, privacy: .public)")
-            throw VideoAnalysisError.invalidResponse
+            logger.error("Gemini video failed (HTTP \((response as? HTTPURLResponse)?.statusCode ?? 0)): \(rawResponse, privacy: .public)")
+            throw VideoAnalysisError.processingFailed("HTTP \((response as? HTTPURLResponse)?.statusCode ?? 0): \(rawResponse.prefix(500))")
         }
 
-        let generateResponse = try JSONDecoder().decode(GeminiGenerateResponse.self, from: data)
+        let generateResponse: GeminiGenerateResponse
+        do {
+            generateResponse = try JSONDecoder().decode(GeminiGenerateResponse.self, from: data)
+        } catch {
+            logger.error("Failed to decode video response: \(error.localizedDescription, privacy: .public)")
+            throw VideoAnalysisError.processingFailed("Decode error: \(error.localizedDescription). Raw: \(rawResponse.prefix(300))")
+        }
 
         guard let candidate = generateResponse.candidates.first,
               let part = candidate.content.parts.first,
               let text = part.text, !text.isEmpty else {
-            throw VideoAnalysisError.invalidResponse
+            logger.error("No valid text in video response: \(rawResponse, privacy: .public)")
+            throw VideoAnalysisError.processingFailed("No text in response: \(rawResponse.prefix(500))")
         }
 
         return text.trimmingCharacters(in: .whitespacesAndNewlines)
