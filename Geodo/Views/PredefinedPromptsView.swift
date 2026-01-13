@@ -40,7 +40,7 @@ struct PredefinedTemplateButton: View {
                     
                     Text(prompt.title)
                         .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(.primary)
+                        .foregroundColor(.cream)
                         .lineLimit(1)
                     
                     Spacer(minLength: 0)

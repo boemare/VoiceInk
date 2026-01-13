@@ -48,7 +48,7 @@ struct AppNotificationView: View {
                 Text(title)
                     .font(.system(size: 12))
                     .fontWeight(.medium)
-                    .foregroundColor(.white)
+                    .foregroundColor(.cream)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
                 
@@ -57,7 +57,7 @@ struct AppNotificationView: View {
                 Button(action: onClose) {
                     Image(systemName: "xmark")
                         .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(.white.opacity(0.6))
+                        .foregroundColor(.cream.opacity(0.6))
                 }
                 .buttonStyle(PlainButtonStyle())
                 .frame(width: 16, height: 16)
@@ -94,7 +94,7 @@ struct AppNotificationView: View {
         .overlay(
             // Subtle inner border
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.1), lineWidth: 0.5)
+                .strokeBorder(Color.cream.opacity(0.1), lineWidth: 0.5)
         )
         .overlay(
             VStack {

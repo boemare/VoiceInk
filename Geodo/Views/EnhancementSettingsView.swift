@@ -109,7 +109,7 @@ struct EnhancementSettingsView: View {
                         HStack {
                             Text("Shortcuts")
                             .font(.headline)
-                            .foregroundColor(.primary)
+                            .foregroundColor(.cream)
                             Spacer()
                         }
                         .contentShape(Rectangle())

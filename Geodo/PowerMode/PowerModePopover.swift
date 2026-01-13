@@ -8,12 +8,12 @@ struct PowerModePopover: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Select Power Mode")
                 .font(.headline)
-                .foregroundColor(.white.opacity(0.9))
+                .foregroundColor(.cream.opacity(0.9))
                 .padding(.horizontal)
                 .padding(.top, 8)
             
             Divider()
-                .background(Color.white.opacity(0.1))
+                .background(Color.cream.opacity(0.1))
             
             ScrollView {
                 let enabledConfigs = powerModeManager.configurations.filter { $0.isEnabled }
@@ -21,10 +21,10 @@ struct PowerModePopover: View {
                     if enabledConfigs.isEmpty {
                         VStack(alignment: .center, spacing: 8) {
                             Image(systemName: "sparkles")
-                                .foregroundColor(.white.opacity(0.6))
+                                .foregroundColor(.cream.opacity(0.6))
                                 .font(.system(size: 16))
                             Text("No Power Modes Available")
-                                .foregroundColor(.white.opacity(0.8))
+                                .foregroundColor(.cream.opacity(0.8))
                                 .font(.system(size: 13))
                                 .lineLimit(1)
                                 .truncationMode(.tail)
@@ -82,7 +82,7 @@ struct PowerModeRow: View {
                     .font(.system(size: 14))
 
                 Text(config.name)
-                    .foregroundColor(.white.opacity(0.9))
+                    .foregroundColor(.cream.opacity(0.9))
                     .font(.system(size: 13))
                     .lineLimit(1)
 
@@ -99,7 +99,7 @@ struct PowerModeRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .background(isSelected ? Color.white.opacity(0.1) : Color.clear)
+        .background(isSelected ? Color.cream.opacity(0.1) : Color.clear)
         .cornerRadius(4)
     }
 } 

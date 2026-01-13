@@ -138,7 +138,7 @@ struct MetricsSetupView: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
             .background(Color.accentColor)
-            .foregroundColor(.white)
+            .foregroundColor(.cream)
             .cornerRadius(12)
         }
         .buttonStyle(.plain)

@@ -45,7 +45,7 @@ struct ParakeetModelCardRowView: View {
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
                 .background(Capsule().fill(Color.orange.opacity(0.8)))
-                .foregroundColor(.white)
+                .foregroundColor(.cream)
 
             statusBadge
             Spacer()
@@ -60,7 +60,7 @@ struct ParakeetModelCardRowView: View {
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(Capsule().fill(Color.accentColor))
-                    .foregroundColor(.white)
+                    .foregroundColor(.cream)
             } else if isDownloaded {
                 Text("Downloaded")
                     .font(.system(size: 11, weight: .medium))
@@ -141,7 +141,7 @@ struct ParakeetModelCardRowView: View {
                         Image(systemName: "arrow.down.circle")
                     }
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(.white)
+                    .foregroundColor(.cream)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .background(Capsule().fill(Color.accentColor))

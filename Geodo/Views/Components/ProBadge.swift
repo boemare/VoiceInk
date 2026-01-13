@@ -4,7 +4,7 @@ struct ProBadge: View {
     var body: some View {
         Text("BETA")
             .font(.system(size: 10, weight: .semibold))
-            .foregroundColor(.white)
+            .foregroundColor(.cream)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .background(

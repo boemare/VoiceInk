@@ -57,10 +57,10 @@ struct DoDetailView: View {
                     VStack(spacing: 12) {
                         Image(systemName: "video.slash")
                             .font(.system(size: 40))
-                            .foregroundColor(.white.opacity(0.5))
+                            .foregroundColor(.cream.opacity(0.5))
                         Text("Video not available")
                             .font(.system(size: 14))
-                            .foregroundColor(.white.opacity(0.5))
+                            .foregroundColor(.cream.opacity(0.5))
                     }
                 }
                 .frame(height: 200)

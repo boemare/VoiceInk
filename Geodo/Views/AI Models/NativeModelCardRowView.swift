@@ -44,7 +44,7 @@ struct NativeAppleModelCardView: View {
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(Capsule().fill(Color.accentColor))
-                    .foregroundColor(.white)
+                    .foregroundColor(.cream)
             } else {
                 Text("Built-in")
                     .font(.system(size: 11, weight: .medium))

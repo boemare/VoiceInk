@@ -63,7 +63,7 @@ struct PromptEditorView: View {
                 Text(isEditingPredefinedPrompt ? "Edit Trigger Words" : (mode == .add ? "New Prompt" : "Edit Prompt"))
                     .font(.headline)
                     .fontWeight(.semibold)
-                    .foregroundColor(.primary)
+                    .foregroundColor(.cream)
                 
                 Spacer()
                 
@@ -98,7 +98,7 @@ struct PromptEditorView: View {
                             Text("Editing: \(title)")
                                 .font(.title3)
                                 .fontWeight(.medium)
-                                .foregroundColor(.primary)
+                                .foregroundColor(.cream)
                             
                             Text("You can only customize the trigger words for system prompts.")
                                 .font(.subheadline)
@@ -115,7 +115,7 @@ struct PromptEditorView: View {
                                 Button(action: { showingIconPicker = true }) {
                                     Image(systemName: selectedIcon)
                                         .font(.system(size: 24))
-                                        .foregroundColor(.primary)
+                                        .foregroundColor(.cream)
                                         .frame(width: 56, height: 56)
                                         .background(Color(NSColor.controlBackgroundColor))
                                         .cornerRadius(10)
@@ -168,7 +168,7 @@ struct PromptEditorView: View {
                                 HStack(spacing: 6) {
                                     Text("Instructions")
                                         .font(.headline)
-                                        .foregroundColor(.primary)
+                                        .foregroundColor(.cream)
                                     
                                     InfoTip(
                                         title: "Instructions",
@@ -239,7 +239,7 @@ struct PromptEditorView: View {
                                             Image(systemName: "sparkles")
                                                 .foregroundColor(.accentColor)
                                             Text("Start with Template")
-                                                .foregroundColor(.primary)
+                                                .foregroundColor(.cream)
                                             Image(systemName: "chevron.down")
                                                 .font(.caption)
                                                 .foregroundColor(.secondary)
@@ -422,7 +422,7 @@ struct TriggerWordItemView: View {
                     .lineLimit(1)
                     .truncationMode(.tail)
                     .frame(maxWidth: 120, alignment: .leading)
-                    .foregroundColor(.primary)
+                    .foregroundColor(.cream)
             
             Button(action: onDelete) {
                 Image(systemName: "xmark")
@@ -522,7 +522,7 @@ struct IconPickerPopover: View {
                             
                             Image(systemName: icon)
                                 .font(.system(size: 24, weight: .medium))
-                                .foregroundColor(.primary)
+                                .foregroundColor(.cream)
                         }
                         .scaleEffect(selectedIcon == icon ? 1.1 : 1.0)
                         .animation(.spring(response: 0.2, dampingFraction: 0.7), value: selectedIcon == icon)

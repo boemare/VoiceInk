@@ -11,7 +11,7 @@ struct MiniRecorderView: View {
         } else if whisperState.isNotesMode {
             return .blue
         } else {
-            return .white.opacity(0.3)
+            return .cream.opacity(0.3)
         }
     }
 
@@ -41,7 +41,7 @@ struct MiniRecorderView: View {
         } else if whisperState.isNotesMode {
             return .blue
         } else {
-            return .white
+            return .cream
         }
     }
 

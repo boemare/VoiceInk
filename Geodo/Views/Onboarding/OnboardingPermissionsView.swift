@@ -85,7 +85,7 @@ struct OnboardingPermissionsView: View {
                         HStack(spacing: 8) {
                             ForEach(0..<permissions.count, id: \.self) { index in
                                 Circle()
-                                    .fill(index <= currentPermissionIndex ? Color.accentColor : Color.white.opacity(0.1))
+                                    .fill(index <= currentPermissionIndex ? Color.accentColor : Color.cream.opacity(0.1))
                                     .frame(width: 8, height: 8)
                                     .scaleEffect(index == currentPermissionIndex ? 1.2 : 1.0)
                                     .animation(.spring(response: 0.3, dampingFraction: 0.7), value: currentPermissionIndex)
@@ -121,7 +121,7 @@ struct OnboardingPermissionsView: View {
                                     Text(permissions[currentPermissionIndex].title)
                                         .font(.title2)
                                         .fontWeight(.bold)
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.cream)
                                     
                                     if permissions[currentPermissionIndex].type == .screenRecording {
                                         InfoTip(
@@ -134,7 +134,7 @@ struct OnboardingPermissionsView: View {
                                 
                                 Text(permissions[currentPermissionIndex].description)
                                     .font(.body)
-                                    .foregroundColor(.white.opacity(0.7))
+                                    .foregroundColor(.cream.opacity(0.7))
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal)
                             }
@@ -190,7 +190,7 @@ struct OnboardingPermissionsView: View {
                                     
                                     Text("For best results, using your Mac's built-in microphone is recommended.")
                                         .font(.caption)
-                                        .foregroundColor(.white.opacity(0.7))
+                                        .foregroundColor(.cream.opacity(0.7))
                                         .multilineTextAlignment(.center)
                                         .padding(.horizontal)
                                 }
@@ -221,7 +221,7 @@ struct OnboardingPermissionsView: View {
                             Button(action: requestPermission) {
                                 Text(getButtonTitle())
                                     .font(.headline)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.cream)
                                     .frame(width: 200, height: 50)
                                     .background(Color.accentColor)
                                     .cornerRadius(25)
@@ -408,7 +408,7 @@ struct OnboardingPermissionsView: View {
                 
                 Text(label)
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.white.opacity(0.8))
+                    .foregroundColor(.cream.opacity(0.8))
                 
                 Menu {
                     ForEach(options, id: \.self) { option in
@@ -427,19 +427,19 @@ struct OnboardingPermissionsView: View {
                 } label: {
                     HStack(spacing: 8) {
                         Text(displayValue)
-                            .foregroundColor(.white)
+                            .foregroundColor(.cream)
                             .font(.system(size: 16, weight: .medium))
                         Image(systemName: "chevron.up.chevron.down")
                             .font(.system(size: 12))
-                            .foregroundColor(.white.opacity(0.6))
+                            .foregroundColor(.cream.opacity(0.6))
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
-                    .background(Color.white.opacity(0.1))
+                    .background(Color.cream.opacity(0.1))
                     .cornerRadius(10)
                     .overlay(
                         RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                            .stroke(Color.cream.opacity(0.2), lineWidth: 1)
                     )
                 }
                 .menuStyle(.borderlessButton)
@@ -448,7 +448,7 @@ struct OnboardingPermissionsView: View {
             }
         }
         .padding()
-        .background(Color.white.opacity(0.05))
+        .background(Color.cream.opacity(0.05))
         .cornerRadius(12)
     }
 

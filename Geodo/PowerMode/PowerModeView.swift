@@ -77,7 +77,7 @@ struct PowerModeView: View {
                             HStack(spacing: 8) {
                                 Text("Power Modes")
                                     .font(.system(size: 28, weight: .bold, design: .default))
-                                    .foregroundColor(.primary)
+                                    .foregroundColor(.cream)
                                 
                                                                  InfoTip(
                                      title: "What is Power Mode?",
@@ -105,7 +105,7 @@ struct PowerModeView: View {
                                         Text("Add Power Mode")
                                             .font(.system(size: 13, weight: .medium))
                                     }
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.cream)
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, 6)
                                     .background(Color.accentColor)
@@ -120,7 +120,7 @@ struct PowerModeView: View {
                                     Text(isReorderMode ? "Done" : "Reorder")
                                         .font(.system(size: 13, weight: .medium))
                                 }
-                                .foregroundColor(.primary)
+                                .foregroundColor(.cream)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 6)
                                 .background(Color(NSColor.controlBackgroundColor))
@@ -167,7 +167,7 @@ struct PowerModeView: View {
                                                     .padding(.horizontal, 6)
                                                     .padding(.vertical, 2)
                                                     .background(Capsule().fill(Color.accentColor))
-                                                    .foregroundColor(.white)
+                                                    .foregroundColor(.cream)
                                             }
                                             if !config.isEnabled {
                                                 Text("Disabled")
@@ -216,7 +216,7 @@ struct PowerModeView: View {
                                                 VStack(spacing: 8) {
                                                     Text("No Power Modes Yet")
                                                         .font(.system(size: 20, weight: .medium))
-                                                        .foregroundColor(.primary)
+                                                        .foregroundColor(.cream)
                                                     
                                                     Text("Create first power mode to automate your Geodo workflow based on apps/website you are using")
                                                         .font(.system(size: 14))

@@ -89,7 +89,7 @@ private struct MessageBubble: View {
                             .fill(.thinMaterial)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                    .strokeBorder(Color.primary.opacity(0.06), lineWidth: 0.5)
+                                    .strokeBorder(Color.cream.opacity(0.06), lineWidth: 0.5)
                             )
                     }
                 }

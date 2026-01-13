@@ -47,7 +47,7 @@ struct CustomModelCardView: View {
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(Capsule().fill(Color.accentColor))
-                    .foregroundColor(.white)
+                    .foregroundColor(.cream)
             } else {
                 Text("Custom")
                     .font(.system(size: 11, weight: .medium))

@@ -29,14 +29,14 @@ struct OnboardingView: View {
                                 VStack(spacing: 16) {
                                     Text("Welcome to the Future of Typing")
                                         .font(.system(size: min(geometry.size.width * 0.055, 42), weight: .bold, design: .rounded))
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.cream)
                                         .opacity(textOpacity)
                                         .multilineTextAlignment(.center)
                                         .padding(.horizontal)
                                     
                                     Text("A New Way to Type")
                                         .font(.system(size: min(geometry.size.width * 0.032, 24), weight: .medium, design: .rounded))
-                                        .foregroundColor(.white.opacity(0.7))
+                                        .foregroundColor(.cream.opacity(0.7))
                                         .opacity(textOpacity)
                                         .multilineTextAlignment(.center)
                                 }
@@ -65,7 +65,7 @@ struct OnboardingView: View {
                                             .font(.system(size: 18, weight: .semibold))
                                             .foregroundColor(.black)
                                             .frame(width: min(geometry.size.width * 0.3, 200), height: 50)
-                                            .background(Color.white)
+                                            .background(Color.cream)
                                             .cornerRadius(25)
                                     }
                                     .buttonStyle(ScaleButtonStyle())
@@ -139,7 +139,7 @@ struct TypewriterRoles: View {
                             colors: [
                                 Color.accentColor,
                                 Color.accentColor.opacity(0.8),
-                                Color.white.opacity(0.9)
+                                Color.cream.opacity(0.9)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -238,7 +238,7 @@ struct SkipButton: View {
     var body: some View {
         Text(text)
             .font(.system(size: 13, weight: .regular))
-            .foregroundColor(.white.opacity(0.2))
+            .foregroundColor(.cream.opacity(0.2))
             .onTapGesture(perform: action)
     }
 }
@@ -325,7 +325,7 @@ struct ParticlesView: View {
                             width: scale,
                             height: scale
                         )),
-                        with: .color(.white)
+                        with: .color(.cream)
                     )
                 }
             }

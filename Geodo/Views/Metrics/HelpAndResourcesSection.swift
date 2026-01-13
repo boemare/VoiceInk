@@ -5,7 +5,7 @@ struct HelpAndResourcesSection: View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Help & Resources")
                 .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundColor(.primary.opacity(0.8))
+                .foregroundColor(.cream.opacity(0.8))
 
             VStack(alignment: .leading, spacing: 10) {
                 resourceLink(
@@ -42,7 +42,7 @@ struct HelpAndResourcesSection: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                .stroke(Color.cream.opacity(0.1), lineWidth: 1)
         )
     }
     
@@ -70,7 +70,7 @@ struct HelpAndResourcesSection: View {
                     .foregroundColor(.secondary)
             }
             .padding(12)
-            .background(Color.primary.opacity(0.05))
+            .background(Color.cream.opacity(0.05))
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
         }

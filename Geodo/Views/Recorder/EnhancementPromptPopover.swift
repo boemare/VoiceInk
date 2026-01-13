@@ -10,7 +10,7 @@ struct EnhancementPromptPopover: View {
             // Enhancement Toggle at the top
             HStack(spacing: 8) {
                 Toggle("Enhancement Prompt", isOn: $enhancementService.isEnhancementEnabled)
-                    .foregroundColor(.white.opacity(0.9))
+                    .foregroundColor(.cream.opacity(0.9))
                     .font(.headline)
                     .lineLimit(1)
                 
@@ -20,7 +20,7 @@ struct EnhancementPromptPopover: View {
             .padding(.top, 8)
             
             Divider()
-                .background(Color.white.opacity(0.1))
+                .background(Color.cream.opacity(0.1))
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 4) {
@@ -72,10 +72,10 @@ struct EnhancementPromptRow: View {
                 // Use the icon from the prompt
                 Image(systemName: prompt.icon)
                     .font(.system(size: 14))
-                    .foregroundColor(isDisabled ? .white.opacity(0.4) : .white.opacity(0.7))
+                    .foregroundColor(isDisabled ? .cream.opacity(0.4) : .cream.opacity(0.7))
 
                 Text(prompt.title)
-                    .foregroundColor(isDisabled ? .white.opacity(0.4) : .white.opacity(0.9))
+                    .foregroundColor(isDisabled ? .cream.opacity(0.4) : .cream.opacity(0.9))
                     .font(.system(size: 13))
                     .lineLimit(1)
 
@@ -92,7 +92,7 @@ struct EnhancementPromptRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .background(isSelected ? Color.white.opacity(0.1) : Color.clear)
+        .background(isSelected ? Color.cream.opacity(0.1) : Color.clear)
         .cornerRadius(4)
     }
 } 

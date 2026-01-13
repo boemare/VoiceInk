@@ -45,16 +45,16 @@ struct LicenseManagementView: View {
 
                 (Text("You have saved ")
                     .fontWeight(.bold)
-                    .foregroundColor(.white.opacity(0.85))
+                    .foregroundColor(.cream.opacity(0.85))
                  +
                  Text(formattedTimeSaved)
                     .fontWeight(.black)
                     .font(.system(size: 36, design: .rounded))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.cream)
                  +
                  Text(" with Geodo")
                     .fontWeight(.bold)
-                    .foregroundColor(.white.opacity(0.85))
+                    .foregroundColor(.cream.opacity(0.85))
                 )
                 .font(.system(size: 30))
                 .multilineTextAlignment(.center)
@@ -66,7 +66,7 @@ struct LicenseManagementView: View {
 
             Text(metricsSubtitle)
                 .font(.system(size: 15, weight: .medium))
-                .foregroundColor(.white.opacity(0.85))
+                .foregroundColor(.cream.opacity(0.85))
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
         }
@@ -78,7 +78,7 @@ struct LicenseManagementView: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.1), lineWidth: 1)
+                .strokeBorder(Color.cream.opacity(0.1), lineWidth: 1)
         )
         .shadow(color: Color.black.opacity(0.08), radius: 30, x: 0, y: 16)
     }
@@ -386,7 +386,7 @@ struct LicenseManagementView: View {
                         .padding(.horizontal, 12)
                         .padding(.vertical, 4)
                         .background(Capsule().fill(.green))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(.cream)
                 }
                 
                 Divider()

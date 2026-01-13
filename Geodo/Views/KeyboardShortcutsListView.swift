@@ -18,7 +18,7 @@ struct KeyboardShortcutsListView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text("Keyboard Shortcuts")
                     .font(.system(size: 24, weight: .bold))
-                    .foregroundColor(.primary)
+                    .foregroundColor(.cream)
                 Text("Quick reference for all Geodo shortcuts")
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(.secondary)
@@ -215,7 +215,7 @@ private struct ShortcutCard<Content: View>: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.primary)
+                    .foregroundColor(.cream)
                     .lineLimit(1)
 
                 Text(subtitle)
@@ -386,7 +386,7 @@ private struct HotkeyBadge: View {
     var body: some View {
         Text(text)
             .font(.system(size: 12, weight: .semibold))
-            .foregroundColor(.primary)
+            .foregroundColor(.cream)
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
             .background(
@@ -415,10 +415,10 @@ private struct MouseBadge: View {
         HStack(spacing: 6) {
             Image(systemName: "button.vertical.right.press.fill")
                 .font(.system(size: 11))
-                .foregroundColor(.primary)
+                .foregroundColor(.cream)
             Text("Middle Button")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(.primary)
+                .foregroundColor(.cream)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)

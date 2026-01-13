@@ -540,7 +540,7 @@ struct SettingsView: View {
             } label: {
                 HStack(spacing: 8) {
                     Text(binding.wrappedValue.displayName)
-                        .foregroundColor(.primary)
+                        .foregroundColor(.cream)
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.system(size: 10))
                         .foregroundColor(.secondary)
@@ -903,7 +903,7 @@ struct AudioDeviceRow: View {
 
                 Text(name)
                     .font(.system(size: 13))
-                    .foregroundColor(.primary)
+                    .foregroundColor(.cream)
 
                 Spacer()
 
@@ -943,7 +943,7 @@ struct SettingsNavigationRow: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.primary)
+                        .foregroundColor(.cream)
                     Text(subtitle)
                         .font(.system(size: 11))
                         .foregroundColor(.secondary)

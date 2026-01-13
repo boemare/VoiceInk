@@ -11,7 +11,7 @@ struct AnnouncementView: View {
             HStack(alignment: .top) {
                 Text(title)
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundColor(.cream)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
 
@@ -20,7 +20,7 @@ struct AnnouncementView: View {
                 Button(action: onClose) {
                     Image(systemName: "xmark")
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(.white.opacity(0.7))
+                        .foregroundColor(.cream.opacity(0.7))
                 }
                 .buttonStyle(PlainButtonStyle())
             }
@@ -29,7 +29,7 @@ struct AnnouncementView: View {
                 ScrollView {
                     Text(description)
                         .font(.system(size: 12))
-                        .foregroundColor(.white.opacity(0.9))
+                        .foregroundColor(.cream.opacity(0.9))
                         .multilineTextAlignment(.leading)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -43,7 +43,7 @@ struct AnnouncementView: View {
                         .foregroundColor(.black)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
-                        .background(Color.white)
+                        .background(Color.cream)
                         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -51,7 +51,7 @@ struct AnnouncementView: View {
                 Button(action: onClose) {
                     Text("Dismiss")
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.white.opacity(0.9))
+                        .foregroundColor(.cream.opacity(0.9))
                         .padding(.horizontal, 8)
                         .padding(.vertical, 6)
                 }
@@ -84,7 +84,7 @@ struct AnnouncementView: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.3), lineWidth: 0.5)
+                .strokeBorder(Color.cream.opacity(0.3), lineWidth: 0.5)
         )
     }
 }

@@ -88,7 +88,7 @@ struct ModelManagementView: View {
                         }) {
                             Text(filter.rawValue)
                                 .font(.system(size: 14, weight: selectedFilter == filter ? .semibold : .medium))
-                                .foregroundColor(selectedFilter == filter ? .primary : .primary.opacity(0.7))
+                                .foregroundColor(selectedFilter == filter ? .primary : .cream.opacity(0.7))
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 8)
                                 .background(
@@ -108,7 +108,7 @@ struct ModelManagementView: View {
                 }) {
                     Image(systemName: "gear")
                         .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(isShowingSettings ? .accentColor : .primary.opacity(0.7))
+                        .foregroundColor(isShowingSettings ? .accentColor : .cream.opacity(0.7))
                         .padding(12)
                         .background(
                             CardBackground(isSelected: isShowingSettings, cornerRadius: 22)
@@ -221,7 +221,7 @@ struct ModelManagementView: View {
 
             Text("Local models don't work reliably on Intel Macs")
                 .font(.system(size: 13, weight: .medium))
-                .foregroundColor(.primary.opacity(0.85))
+                .foregroundColor(.cream.opacity(0.85))
 
             Spacer()
 

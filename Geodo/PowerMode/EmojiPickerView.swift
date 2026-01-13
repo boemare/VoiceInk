@@ -171,9 +171,9 @@ private struct EmojiButton: View {
                 Button(action: removeAction) {
                     Image(systemName: "xmark.circle.fill")
                         .symbolRenderingMode(.palette)
-                        .foregroundStyle(Color.white, Color.red)
+                        .foregroundStyle(Color.cream, Color.red)
                         .font(.caption2)
-                        .background(Circle().fill(Color.white.opacity(0.8)))
+                        .background(Circle().fill(Color.cream.opacity(0.8)))
                 }
                 .buttonStyle(.borderless) 
                 .offset(x: 6, y: -6)

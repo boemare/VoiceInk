@@ -38,7 +38,7 @@ struct NoteListItem: View {
                 Text(note.enhancedText ?? note.text)
                     .font(.system(size: 12, weight: .regular))
                     .lineLimit(2)
-                    .foregroundColor(.primary)
+                    .foregroundColor(.cream)
             }
         }
         .padding(10)

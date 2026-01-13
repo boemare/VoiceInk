@@ -19,10 +19,10 @@ struct AnimatedSaveButton: View {
             HStack(spacing: 4) {
                 Image(systemName: isSaved ? "checkmark" : "square.and.arrow.down")
                     .font(.system(size: 12, weight: isSaved ? .bold : .regular))
-                    .foregroundColor(.white)
+                    .foregroundColor(.cream)
                 Text(isSaved ? "Saved" : "Save")
                     .font(.system(size: 12, weight: isSaved ? .medium : .regular))
-                    .foregroundColor(.white)
+                    .foregroundColor(.cream)
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 4)

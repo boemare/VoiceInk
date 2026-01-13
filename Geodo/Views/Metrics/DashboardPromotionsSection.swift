@@ -113,18 +113,18 @@ private struct DashboardPromotionCard: View {
                     .tracking(0.8)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(.white.opacity(0.2))
+                    .background(.cream.opacity(0.2))
                     .clipShape(Capsule())
-                    .foregroundColor(.white)
+                    .foregroundColor(.cream)
 
                 Text(title)
                     .font(.system(size: 20, weight: .heavy, design: .rounded))
-                    .foregroundColor(.white)
+                    .foregroundColor(.cream)
                     .fixedSize(horizontal: false, vertical: true)
 
                 Text(message)
                     .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(.white.opacity(0.85))
+                    .foregroundColor(.cream.opacity(0.85))
                     .fixedSize(horizontal: false, vertical: true)
 
                 Button(action: action) {
@@ -135,9 +135,9 @@ private struct DashboardPromotionCard: View {
                     .font(.system(size: 13, weight: .semibold))
                     .padding(.horizontal, 16)
                     .padding(.vertical, 9)
-                    .background(.white.opacity(0.22))
+                    .background(.cream.opacity(0.22))
                     .clipShape(Capsule())
-                    .foregroundColor(.white)
+                    .foregroundColor(.cream)
                 }
                 .buttonStyle(.plain)
             }
@@ -148,7 +148,7 @@ private struct DashboardPromotionCard: View {
                 Button(action: onDismiss) {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(.white.opacity(0.7))
+                        .foregroundColor(.cream.opacity(0.7))
                 }
                 .buttonStyle(.plain)
                 .padding(12)
@@ -162,7 +162,7 @@ private struct DashboardPromotionCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .stroke(.white.opacity(0.08), lineWidth: 1)
+                .stroke(.cream.opacity(0.08), lineWidth: 1)
         )
         .shadow(color: glowColor.opacity(0.15), radius: 12, x: 0, y: 8)
     }

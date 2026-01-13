@@ -86,7 +86,7 @@ struct TranscriptionResultView: View {
             Button(action: action) {
                 Text(title)
                     .font(.system(size: 13, weight: isSelected ? .semibold : .medium))
-                    .foregroundColor(isSelected ? .white : .secondary)
+                    .foregroundColor(isSelected ? .cream : .secondary)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .background(

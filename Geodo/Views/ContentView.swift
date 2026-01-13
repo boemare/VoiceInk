@@ -150,7 +150,7 @@ struct ContentView: View {
                             RoundedRectangle(cornerRadius: 6)
                                 .fill(selectedView == .settings ? Color.accentColor : Color.clear)
                         )
-                        .foregroundColor(selectedView == .settings ? .white : .primary)
+                        .foregroundColor(selectedView == .settings ? .cream : .primary)
                 }
                 .buttonStyle(.plain)
                 .padding(.horizontal, 8)
@@ -245,6 +245,7 @@ private struct SidebarItemView: View {
 
             Spacer()
         }
+        .foregroundColor(.cream)
         .padding(.vertical, 8)
         .padding(.horizontal, 2)
     }

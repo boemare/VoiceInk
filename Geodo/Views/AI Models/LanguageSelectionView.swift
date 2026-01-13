@@ -80,7 +80,7 @@ struct LanguageSelectionView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Language: Autodetected")
                             .font(.subheadline)
-                            .foregroundColor(.primary)
+                            .foregroundColor(.cream)
 
                         Text("Current model: \(currentModel.displayName)")
                             .font(.caption)
@@ -124,7 +124,7 @@ struct LanguageSelectionView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Language: English")
                             .font(.subheadline)
-                            .foregroundColor(.primary)
+                            .foregroundColor(.cream)
 
                         Text("Current model: \(currentModel.displayName)")
                             .font(.caption)

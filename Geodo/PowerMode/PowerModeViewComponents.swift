@@ -9,7 +9,7 @@ struct VoiceInkButton: View {
         Button(action: action) {
             Text(title)
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(.cream)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
                 .background(
@@ -172,7 +172,7 @@ struct ConfigurationRow: View {
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
                                 .background(Capsule().fill(Color.accentColor))
-                                .foregroundColor(.white)
+                                .foregroundColor(.cream)
                         }
                     }
                     

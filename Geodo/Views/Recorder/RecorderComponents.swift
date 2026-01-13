@@ -53,7 +53,7 @@ struct RecorderToggleButton: View {
                         .font(.system(size: 13))
                 }
             }
-            .foregroundColor(disabled ? .white.opacity(0.3) : (isEnabled ? .white : .white.opacity(0.6)))
+            .foregroundColor(disabled ? .cream.opacity(0.3) : (isEnabled ? .cream : .cream.opacity(0.6)))
         }
         .buttonStyle(PlainButtonStyle())
         .disabled(disabled)
@@ -74,15 +74,15 @@ struct RecorderRecordButton: View {
                     .frame(width: 25, height: 25)
                 
                 if isProcessing {
-                    ProcessingIndicator(color: .white)
+                    ProcessingIndicator(color: .cream)
                         .frame(width: 16, height: 16)
                 } else if isRecording {
                     RoundedRectangle(cornerRadius: 3)
-                        .fill(Color.white)
+                        .fill(Color.cream)
                         .frame(width: 9, height: 9)
                 } else {
                     Circle()
-                        .fill(Color.white)
+                        .fill(Color.cream)
                         .frame(width: 9, height: 9)
                 }
             }
@@ -133,7 +133,7 @@ struct ProgressAnimation: View {
     @State private var currentDot = 0
     @State private var timer: Timer?
 
-    init(color: Color = .white, animationSpeed: Double = 0.3) {
+    init(color: Color = .cream, animationSpeed: Double = 0.3) {
         self.color = color
         self.animationSpeed = animationSpeed
     }
@@ -295,7 +295,7 @@ struct RecorderStatusDisplay: View {
     let menuBarHeight: CGFloat?
     let color: Color
 
-    init(currentState: RecordingState, audioMeter: AudioMeter, menuBarHeight: CGFloat? = nil, color: Color = .white) {
+    init(currentState: RecordingState, audioMeter: AudioMeter, menuBarHeight: CGFloat? = nil, color: Color = .cream) {
         self.currentState = currentState
         self.audioMeter = audioMeter
         self.menuBarHeight = menuBarHeight

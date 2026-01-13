@@ -25,11 +25,11 @@ struct OnboardingTutorialView: View {
                         VStack(alignment: .leading, spacing: 16) {
                             Text("Try It Out!")
                                 .font(.system(size: 44, weight: .bold, design: .rounded))
-                                .foregroundColor(.white)
+                                .foregroundColor(.cream)
                             
                             Text("Let's test your Geodo setup.")
                                 .font(.system(size: 24, weight: .medium, design: .rounded))
-                                .foregroundColor(.white.opacity(0.7))
+                                .foregroundColor(.cream.opacity(0.7))
                                 .lineSpacing(4)
                         }
                         
@@ -38,7 +38,7 @@ struct OnboardingTutorialView: View {
                             HStack {
                                 Text("Your Shortcut")
                                     .font(.system(size: 28, weight: .semibold, design: .rounded))
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.cream)
                                 
                                 
                             }
@@ -53,7 +53,7 @@ struct OnboardingTutorialView: View {
                                     .foregroundColor(.accentColor)
                                     .padding(.horizontal, 16)
                                     .padding(.vertical, 8)
-                                    .background(Color.white.opacity(0.1))
+                                    .background(Color.cream.opacity(0.1))
                                     .cornerRadius(8)
                             }
                         }
@@ -73,7 +73,7 @@ struct OnboardingTutorialView: View {
                         }) {
                             Text("Complete Setup")
                                 .font(.system(size: 18, weight: .semibold, design: .rounded))
-                                .foregroundColor(.white)
+                                .foregroundColor(.cream)
                                 .frame(width: 200, height: 50)
                                 .background(Color.accentColor)
                                 .cornerRadius(25)
@@ -98,7 +98,7 @@ struct OnboardingTutorialView: View {
                                 .fill(Color.black.opacity(0.4))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 20)
-                                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                                        .stroke(Color.cream.opacity(0.1), lineWidth: 1)
                                 )
                                 .overlay(
                                     // Subtle gradient overlay
@@ -119,7 +119,7 @@ struct OnboardingTutorialView: View {
                                 .focused($isFocused)
                                 .scrollContentBackground(.hidden)
                                 .background(Color.clear)
-                                .foregroundColor(.white)
+                                .foregroundColor(.cream)
                                 .padding(20)
                             
                             // Placeholder text with magical appearance
@@ -127,11 +127,11 @@ struct OnboardingTutorialView: View {
                                 VStack(spacing: 16) {
                                     Image(systemName: "wand.and.stars")
                                         .font(.system(size: 36))
-                                        .foregroundColor(.white.opacity(0.3))
+                                        .foregroundColor(.cream.opacity(0.3))
                                     
                                     Text("Click here and start speaking...")
                                         .font(.system(size: 28, weight: .semibold, design: .rounded))
-                                        .foregroundColor(.white.opacity(0.5))
+                                        .foregroundColor(.cream.opacity(0.5))
                                         .multilineTextAlignment(.center)
                                 }
                                 .padding()
@@ -180,7 +180,7 @@ struct OnboardingTutorialView: View {
         HStack(spacing: 20) {
             Text("\(number)")
                 .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundColor(.white)
+                .foregroundColor(.cream)
                 .frame(width: 40, height: 40)
                 .background(Circle().fill(Color.accentColor.opacity(0.2)))
                 .overlay(
@@ -190,7 +190,7 @@ struct OnboardingTutorialView: View {
             
             Text(text)
                 .font(.system(size: 18, weight: .medium, design: .rounded))
-                .foregroundColor(.white.opacity(0.9))
+                .foregroundColor(.cream.opacity(0.9))
                 .lineSpacing(4)
         }
     }

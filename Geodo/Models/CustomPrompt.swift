@@ -162,9 +162,9 @@ extension CustomPrompt {
                                 LinearGradient(
                                     gradient: Gradient(colors: [
                                         isSelected ?
-                                            Color.white.opacity(0.3) : Color.white.opacity(0.15),
+                                            Color.cream.opacity(0.3) : Color.cream.opacity(0.15),
                                         isSelected ?
-                                            Color.white.opacity(0.1) : Color.white.opacity(0.05)
+                                            Color.cream.opacity(0.1) : Color.cream.opacity(0.05)
                                     ]),
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
@@ -186,7 +186,7 @@ extension CustomPrompt {
                         RadialGradient(
                             gradient: Gradient(colors: [
                                 isSelected ?
-                                    Color.white.opacity(0.15) : Color.white.opacity(0.08),
+                                    Color.cream.opacity(0.15) : Color.cream.opacity(0.08),
                                 Color.clear
                             ]),
                             center: .center,
@@ -204,15 +204,15 @@ extension CustomPrompt {
                     .foregroundStyle(
                         LinearGradient(
                             colors: isSelected ?
-                                [Color.white, Color.white.opacity(0.9)] :
-                                [Color.primary.opacity(0.9), Color.primary.opacity(0.7)],
+                                [Color.cream, Color.cream.opacity(0.9)] :
+                                [Color.cream.opacity(0.9), Color.cream.opacity(0.7)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
                     .shadow(
                         color: isSelected ?
-                            Color.white.opacity(0.5) : Color.clear,
+                            Color.cream.opacity(0.5) : Color.clear,
                         radius: 4
                     )
                     .shadow(
@@ -243,12 +243,12 @@ extension CustomPrompt {
                             if triggerWords.count == 1 {
                                 Text("\"\(triggerWords[0])...\"")
                                     .font(.system(size: 8, weight: .regular))
-                                    .foregroundColor(isSelected ? .primary.opacity(0.8) : .secondary.opacity(0.7))
+                                    .foregroundColor(isSelected ? .cream.opacity(0.8) : .secondary.opacity(0.7))
                                     .lineLimit(1)
                             } else {
                                 Text("\"\(triggerWords[0])...\" +\(triggerWords.count - 1)")
                                     .font(.system(size: 8, weight: .regular))
-                                    .foregroundColor(isSelected ? .primary.opacity(0.8) : .secondary.opacity(0.7))
+                                    .foregroundColor(isSelected ? .cream.opacity(0.8) : .secondary.opacity(0.7))
                                     .lineLimit(1)
                             }
                         }
@@ -324,8 +324,8 @@ extension CustomPrompt {
                             .stroke(
                                 LinearGradient(
                                     gradient: Gradient(colors: [
-                                        Color.white.opacity(0.15),
-                                        Color.white.opacity(0.05)
+                                        Color.cream.opacity(0.15),
+                                        Color.cream.opacity(0.05)
                                     ]),
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
@@ -345,7 +345,7 @@ extension CustomPrompt {
                     .fill(
                         RadialGradient(
                             gradient: Gradient(colors: [
-                                Color.white.opacity(0.08),
+                                Color.cream.opacity(0.08),
                                 Color.clear
                             ]),
                             center: .center,

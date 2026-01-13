@@ -47,7 +47,7 @@ struct AddCustomModelCardView: View {
                         Text(editingModel != nil ? "Edit Model" : "Add Model")
                             .font(.system(size: 14, weight: .semibold))
                     }
-                    .foregroundColor(.white)
+                    .foregroundColor(.cream)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .background(Color.accentColor)
@@ -64,7 +64,7 @@ struct AddCustomModelCardView: View {
                     HStack {
                         Text(editingModel != nil ? "Edit Custom Model" : "Add Custom Model")
                             .font(.headline)
-                            .foregroundColor(.primary)
+                            .foregroundColor(.cream)
                         
                         Spacer()
                         
@@ -138,7 +138,7 @@ struct AddCustomModelCardView: View {
                                 Text(editingModel != nil ? "Update Model" : "Add Model")
                                     .font(.system(size: 13, weight: .medium))
                             }
-                            .foregroundColor(.white)
+                            .foregroundColor(.cream)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 10)
                             .background(
@@ -286,7 +286,7 @@ struct FormField: View {
             Text(title)
                 .font(.subheadline)
                 .fontWeight(.medium)
-                .foregroundColor(.primary)
+                .foregroundColor(.cream)
             
             if isSecure {
                 SecureField(placeholder, text: $text)

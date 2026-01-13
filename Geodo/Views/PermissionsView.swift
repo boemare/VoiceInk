@@ -172,7 +172,7 @@ struct PermissionCard: View {
                         Image(systemName: "arrow.right")
                     }
                     .font(.headline)
-                    .foregroundColor(.white)
+                    .foregroundColor(.cream)
                     .padding()
                     .frame(maxWidth: .infinity)
                     .background(

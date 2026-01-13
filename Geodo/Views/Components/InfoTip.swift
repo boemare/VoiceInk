@@ -28,7 +28,7 @@ struct InfoTip: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(title)
                         .font(.headline)
-                        .foregroundColor(.primary)
+                        .foregroundColor(.cream)
                     
                     Text(message)
                         .font(.body)
@@ -45,7 +45,7 @@ struct InfoTip: View {
                                 Image(systemName: "arrow.up.forward")
                                     .font(.caption2)
                             }
-                            .foregroundColor(.white)
+                            .foregroundColor(.cream)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
                             .background(

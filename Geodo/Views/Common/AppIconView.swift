@@ -16,7 +16,7 @@ struct AppIconView: View {
                     .cornerRadius(30)
                     .overlay(
                         RoundedRectangle(cornerRadius: 30)
-                            .stroke(.white.opacity(0.2), lineWidth: 1)
+                            .stroke(.cream.opacity(0.2), lineWidth: 1)
                     )
                     .shadow(color: .accentColor.opacity(0.3), radius: 20)
             }

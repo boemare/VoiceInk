@@ -89,7 +89,7 @@ struct DosView: View {
                             VStack(spacing: 6) {
                                 Text("No Screen Recordings")
                                     .font(.system(size: 15, weight: .semibold))
-                                    .foregroundColor(.primary)
+                                    .foregroundColor(.cream)
                                 Text("Hold Shift + tap-tap your hotkey\nto record your screen with audio")
                                     .font(.system(size: 12))
                                     .foregroundColor(.secondary)

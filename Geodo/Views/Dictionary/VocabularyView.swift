@@ -189,7 +189,7 @@ struct VocabularyWordView: View {
             Text(item.word)
                 .font(.system(size: 13))
                 .lineLimit(1)
-                .foregroundColor(.primary)
+                .foregroundColor(.cream)
 
             Spacer(minLength: 8)
 

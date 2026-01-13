@@ -116,7 +116,7 @@ struct KeyCapView: View {
     @State private var isPressed = false
     
     private var keyColor: Color {
-        colorScheme == .dark ? Color(white: 0.2) : .white
+        colorScheme == .dark ? Color(white: 0.2) : .cream
     }
     
     private var surfaceGradient: LinearGradient {
@@ -133,8 +133,8 @@ struct KeyCapView: View {
     private var highlightGradient: LinearGradient {
         LinearGradient(
             colors: [
-                .white.opacity(colorScheme == .dark ? 0.15 : 0.5),
-                .white.opacity(0.0)
+                .cream.opacity(colorScheme == .dark ? 0.15 : 0.5),
+                .cream.opacity(0.0)
             ],
             startPoint: .topLeading,
             endPoint: .center
@@ -148,7 +148,7 @@ struct KeyCapView: View {
     var body: some View {
         Text(text)
             .font(.system(size: 25, weight: .semibold, design: .rounded))
-            .foregroundColor(colorScheme == .dark ? .white : .black)
+            .foregroundColor(colorScheme == .dark ? .cream : .black)
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .background(
@@ -166,7 +166,7 @@ struct KeyCapView: View {
                         .strokeBorder(
                             LinearGradient(
                                 colors: [
-                                    .white.opacity(colorScheme == .dark ? 0.2 : 0.6),
+                                    .cream.opacity(colorScheme == .dark ? 0.2 : 0.6),
                                     shadowColor.opacity(0.3)
                                 ],
                                 startPoint: .topLeading,
@@ -214,7 +214,7 @@ struct KeyCapView: View {
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
                     .stroke(
-                        Color.white.opacity(colorScheme == .dark ? 0.1 : 0.3),
+                        Color.cream.opacity(colorScheme == .dark ? 0.1 : 0.3),
                         lineWidth: 1
                     )
                     .blur(radius: 1)

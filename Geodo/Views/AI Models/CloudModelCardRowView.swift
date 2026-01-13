@@ -94,7 +94,7 @@ struct CloudModelCardView: View {
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(Capsule().fill(Color.accentColor))
-                    .foregroundColor(.white)
+                    .foregroundColor(.cream)
             } else if isConfiguredState {
                 Text("Configured")
                     .font(.system(size: 11, weight: .medium))
@@ -179,7 +179,7 @@ struct CloudModelCardView: View {
                         Image(systemName: "gear")
                             .font(.system(size: 12, weight: .medium))
                     }
-                    .foregroundColor(.white)
+                    .foregroundColor(.cream)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .background(
@@ -233,7 +233,7 @@ struct CloudModelCardView: View {
                         Text(isVerifying ? "Verifying..." : "Verify")
                             .font(.system(size: 12, weight: .medium))
                     }
-                    .foregroundColor(.white)
+                    .foregroundColor(.cream)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .background(

@@ -35,7 +35,7 @@ struct DoListItem: View {
                         .fill(Color.black.opacity(0.8))
                         .overlay(
                             Image(systemName: "video.fill")
-                                .foregroundColor(.white.opacity(0.4))
+                                .foregroundColor(.cream.opacity(0.4))
                                 .font(.system(size: 16))
                         )
                 }
@@ -48,7 +48,7 @@ struct DoListItem: View {
                             Spacer()
                             Text(doItem.duration.formatTiming())
                                 .font(.system(size: 9, weight: .medium))
-                                .foregroundColor(.white)
+                                .foregroundColor(.cream)
                                 .padding(.horizontal, 4)
                                 .padding(.vertical, 2)
                                 .background(Color.black.opacity(0.7))
@@ -70,7 +70,7 @@ struct DoListItem: View {
                 Text(doItem.enhancedText ?? doItem.text)
                     .font(.system(size: 12, weight: .regular))
                     .lineLimit(2)
-                    .foregroundColor(.primary)
+                    .foregroundColor(.cream)
             }
 
             Spacer(minLength: 0)

@@ -103,7 +103,7 @@ struct TranscriptionMetadataView: View {
                                             .font(.system(size: 11, weight: .regular, design: .monospaced))
                                             .lineSpacing(2)
                                             .textSelection(.enabled)
-                                            .foregroundColor(.primary)
+                                            .foregroundColor(.cream)
                                     }
                                 }
 
@@ -116,7 +116,7 @@ struct TranscriptionMetadataView: View {
                                             .font(.system(size: 11, weight: .regular, design: .monospaced))
                                             .lineSpacing(2)
                                             .textSelection(.enabled)
-                                            .foregroundColor(.primary)
+                                            .foregroundColor(.cream)
                                     }
                                 }
                             }
@@ -150,7 +150,7 @@ struct TranscriptionMetadataView: View {
 
             Text(value)
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(.primary)
+                .foregroundColor(.cream)
                 .lineLimit(1)
         }
     }

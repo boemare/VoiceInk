@@ -84,7 +84,7 @@ struct PerformanceAnalysisView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("System Information")
                 .font(.system(.title2, design: .default, weight: .bold))
-                .foregroundColor(.primary)
+                .foregroundColor(.cream)
 
             HStack(spacing: 12) {
                 SystemInfoCard(label: "Device", value: getMacModel())
@@ -98,7 +98,7 @@ struct PerformanceAnalysisView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Transcription Models")
                 .font(.system(.title2, design: .default, weight: .bold))
-                .foregroundColor(.primary)
+                .foregroundColor(.cream)
 
             LazyVGrid(columns: columns, spacing: 16) {
                 ForEach(analysis.transcriptionModels) { modelStat in
@@ -112,7 +112,7 @@ struct PerformanceAnalysisView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Enhancement Models")
                 .font(.system(.title2, design: .default, weight: .bold))
-                .foregroundColor(.primary)
+                .foregroundColor(.cream)
 
             LazyVGrid(columns: columns, spacing: 16) {
                 ForEach(analysis.enhancementModels) { modelStat in
@@ -257,7 +257,7 @@ struct SummaryCard: View {
             
             Text(value)
                 .font(.system(.title2, design: .rounded, weight: .bold))
-                .foregroundColor(.primary)
+                .foregroundColor(.cream)
             
             Text(label)
                 .font(.caption)
@@ -282,7 +282,7 @@ struct InfoRow: View {
             Spacer()
             Text(value)
                 .font(.body)
-                .foregroundColor(.primary)
+                .foregroundColor(.cream)
         }
     }
 }
@@ -300,7 +300,7 @@ struct SystemInfoCard: View {
             
             Text(value)
                 .font(.system(.body, design: .default, weight: .semibold))
-                .foregroundColor(.primary)
+                .foregroundColor(.cream)
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
         }
