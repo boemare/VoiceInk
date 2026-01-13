@@ -29,7 +29,11 @@ class WhisperState: NSObject, ObservableObject {
     @Published var shouldCancelRecording = false
     @Published var isNotesMode = false  // Set by HotkeyManager for tap-tap mode to save as note
     @Published var isDosMode = false  // Set by HotkeyManager for Shift+tap-tap mode to save as Do with screen recording
-    @Published var isLiveTranscriptionEnabled = false  // Enable live transcription during recording
+    @Published var isLiveTranscriptionEnabled: Bool = UserDefaults.standard.bool(forKey: "isLiveTranscriptionEnabled") {
+        didSet {
+            UserDefaults.standard.set(isLiveTranscriptionEnabled, forKey: "isLiveTranscriptionEnabled")
+        }
+    }
 
 
     @Published var recorderType: String = UserDefaults.standard.string(forKey: "RecorderType") ?? "mini" {
