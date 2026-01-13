@@ -20,4 +20,5 @@ extension Notification.Name {
     static let noteCreated = Notification.Name("noteCreated")
     static let meetingCreated = Notification.Name("meetingCreated")
     static let doCreated = Notification.Name("doCreated")
+    static let doDescriptionUpdated = Notification.Name("doDescriptionUpdated")
 }

@@ -170,6 +170,62 @@ struct DoDetailView: View {
                     }
                     .padding(.horizontal, 16)
 
+                    // Video Description section
+                    if doItem.videoDescription != nil || doItem.videoDescriptionStatus == VideoDescriptionStatus.processing.rawValue || doItem.videoDescriptionStatus == VideoDescriptionStatus.pending.rawValue || doItem.videoDescriptionStatus == VideoDescriptionStatus.failed.rawValue {
+                        Divider()
+                            .padding(.horizontal, 16)
+
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Text("Video Description")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(.secondary)
+
+                                Spacer()
+
+                                // Status indicator
+                                if doItem.videoDescriptionStatus == VideoDescriptionStatus.processing.rawValue || doItem.videoDescriptionStatus == VideoDescriptionStatus.pending.rawValue {
+                                    HStack(spacing: 6) {
+                                        ProgressView()
+                                            .controlSize(.small)
+                                        Text("Analyzing...")
+                                            .font(.system(size: 11))
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                            }
+
+                            if let description = doItem.videoDescription {
+                                Text(description)
+                                    .font(.system(size: 14))
+                                    .lineSpacing(4)
+                                    .textSelection(.enabled)
+                                    .padding(12)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                            .fill(.thinMaterial)
+                                    )
+                            } else if doItem.videoDescriptionStatus == VideoDescriptionStatus.failed.rawValue {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "exclamationmark.triangle")
+                                        .foregroundColor(.orange)
+                                    Text(doItem.videoDescriptionError ?? "Analysis failed")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.secondary)
+
+                                    Spacer()
+                                }
+                                .padding(12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                        .fill(Color.orange.opacity(0.1))
+                                )
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                    }
+
                     // Metadata footer
                     if let modelName = doItem.transcriptionModelName {
                         HStack(spacing: 8) {

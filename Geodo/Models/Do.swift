@@ -16,6 +16,10 @@ final class Do {
     var promptName: String?
     var transcriptionDuration: TimeInterval?
     var enhancementDuration: TimeInterval?
+    var videoDescription: String?
+    var videoDescriptionStatus: String?
+    var videoDescriptionError: String?
+    var videoDescriptionModelName: String?
 
     init(text: String,
          duration: TimeInterval,
@@ -27,7 +31,11 @@ final class Do {
          aiEnhancementModelName: String? = nil,
          promptName: String? = nil,
          transcriptionDuration: TimeInterval? = nil,
-         enhancementDuration: TimeInterval? = nil) {
+         enhancementDuration: TimeInterval? = nil,
+         videoDescription: String? = nil,
+         videoDescriptionStatus: String? = nil,
+         videoDescriptionError: String? = nil,
+         videoDescriptionModelName: String? = nil) {
         self.id = UUID()
         self.text = text
         self.enhancedText = enhancedText
@@ -41,5 +49,9 @@ final class Do {
         self.promptName = promptName
         self.transcriptionDuration = transcriptionDuration
         self.enhancementDuration = enhancementDuration
+        self.videoDescription = videoDescription
+        self.videoDescriptionStatus = videoDescriptionStatus
+        self.videoDescriptionError = videoDescriptionError
+        self.videoDescriptionModelName = videoDescriptionModelName
     }
 }
