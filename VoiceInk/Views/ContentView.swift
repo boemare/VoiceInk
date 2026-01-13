@@ -72,6 +72,15 @@ struct ContentView: View {
             if viewType == .powerMode {
                 return powerModeUIFlag
             }
+            if viewType == .permissions {
+                return false  // Permissions is now under Settings
+            }
+            if viewType == .license {
+                return false  // License is accessed via logo click
+            }
+            if viewType == .audioInput {
+                return false  // Audio Input is now under Settings
+            }
             return true
         }
     }
@@ -80,32 +89,37 @@ struct ContentView: View {
         NavigationSplitView {
             List(selection: $selectedView) {
                 Section {
-                    // App Header
-                    HStack(spacing: 6) {
-                        if let appIcon = NSImage(named: "AppIcon") {
-                            Image(nsImage: appIcon)
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 28, height: 28)
-                                .cornerRadius(8)
+                    // App Header - clickable to open VoiceInk Pro
+                    Button(action: {
+                        selectedView = .license
+                    }) {
+                        HStack(spacing: 6) {
+                            if let appIcon = NSImage(named: "AppIcon") {
+                                Image(nsImage: appIcon)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 28, height: 28)
+                                    .cornerRadius(8)
+                            }
+
+                            Text("VoiceInk")
+                                .font(.system(size: 14, weight: .semibold))
+
+                            if case .licensed = licenseViewModel.licenseState {
+                                Text("PRO")
+                                    .font(.system(size: 9, weight: .heavy))
+                                    .foregroundStyle(.white)
+                                    .padding(.horizontal, 4)
+                                    .padding(.vertical, 2)
+                                    .background(Color.blue)
+                                    .cornerRadius(4)
+                            }
+
+                            Spacer()
                         }
-
-                        Text("VoiceInk")
-                            .font(.system(size: 14, weight: .semibold))
-
-                        if case .licensed = licenseViewModel.licenseState {
-                            Text("PRO")
-                                .font(.system(size: 9, weight: .heavy))
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 4)
-                                .padding(.vertical, 2)
-                                .background(Color.blue)
-                                .cornerRadius(4)
-                        }
-
-                        Spacer()
+                        .padding(.vertical, 4)
                     }
-                    .padding(.vertical, 4)
+                    .buttonStyle(.plain)
                 }
 
                 ForEach(visibleViewTypes) { viewType in

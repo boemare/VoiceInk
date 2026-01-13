@@ -28,6 +28,10 @@ struct SettingsView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
+                PermissionsSettingsSection(hotkeyManager: hotkeyManager)
+
+                AudioInputSettingsSection()
+
                 SettingsSection(
                     icon: "command.circle",
                     title: "VoiceInk Shortcuts",
@@ -570,5 +574,291 @@ extension Text {
             .font(.system(size: 13))
             .foregroundColor(.secondary)
             .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+struct PermissionsSettingsSection: View {
+    @ObservedObject var hotkeyManager: HotkeyManager
+    @StateObject private var permissionManager = PermissionManager()
+
+    private var allPermissionsGranted: Bool {
+        hotkeyManager.selectedHotkey1 != .none &&
+        permissionManager.audioPermissionStatus == .authorized &&
+        permissionManager.isAccessibilityEnabled &&
+        permissionManager.isScreenRecordingEnabled
+    }
+
+    var body: some View {
+        SettingsSection(
+            icon: "shield.lefthalf.filled",
+            title: "Permissions",
+            subtitle: "Required permissions for VoiceInk to function",
+            showWarning: !allPermissionsGranted
+        ) {
+            VStack(spacing: 12) {
+                PermissionRow(
+                    icon: "keyboard",
+                    title: "Keyboard Shortcut",
+                    isGranted: hotkeyManager.selectedHotkey1 != .none,
+                    action: {
+                        // Already in settings, just scroll to shortcuts section
+                    },
+                    checkPermission: { permissionManager.checkKeyboardShortcut() }
+                )
+
+                Divider()
+
+                PermissionRow(
+                    icon: "mic",
+                    title: "Microphone Access",
+                    isGranted: permissionManager.audioPermissionStatus == .authorized,
+                    action: {
+                        if permissionManager.audioPermissionStatus == .notDetermined {
+                            permissionManager.requestAudioPermission()
+                        } else {
+                            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone") {
+                                NSWorkspace.shared.open(url)
+                            }
+                        }
+                    },
+                    checkPermission: { permissionManager.checkAudioPermissionStatus() }
+                )
+
+                Divider()
+
+                PermissionRow(
+                    icon: "hand.raised",
+                    title: "Accessibility Access",
+                    isGranted: permissionManager.isAccessibilityEnabled,
+                    action: {
+                        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    },
+                    checkPermission: { permissionManager.checkAccessibilityPermissions() }
+                )
+
+                Divider()
+
+                PermissionRow(
+                    icon: "rectangle.on.rectangle",
+                    title: "Screen Recording",
+                    isGranted: permissionManager.isScreenRecordingEnabled,
+                    action: {
+                        permissionManager.requestScreenRecordingPermission()
+                        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    },
+                    checkPermission: { permissionManager.checkScreenRecordingPermission() }
+                )
+            }
+        }
+        .onAppear {
+            permissionManager.checkAllPermissions()
+        }
+    }
+}
+
+struct PermissionRow: View {
+    let icon: String
+    let title: String
+    let isGranted: Bool
+    let action: () -> Void
+    let checkPermission: () -> Void
+    @State private var isRefreshing = false
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: isGranted ? "\(icon).fill" : icon)
+                .font(.system(size: 16))
+                .foregroundColor(isGranted ? .green : .orange)
+                .frame(width: 24)
+
+            Text(title)
+                .font(.system(size: 13, weight: .medium))
+
+            Spacer()
+
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    isRefreshing = true
+                }
+                checkPermission()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    isRefreshing = false
+                }
+            }) {
+                Image(systemName: "arrow.clockwise")
+                    .font(.system(size: 12))
+                    .foregroundColor(.secondary)
+                    .rotationEffect(.degrees(isRefreshing ? 360 : 0))
+            }
+            .buttonStyle(.plain)
+
+            if isGranted {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.green)
+            } else {
+                Button("Grant") {
+                    action()
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+            }
+        }
+    }
+}
+
+struct AudioInputSettingsSection: View {
+    @ObservedObject var audioDeviceManager = AudioDeviceManager.shared
+
+    var body: some View {
+        SettingsSection(
+            icon: "mic.fill",
+            title: "Audio Input",
+            subtitle: "Configure your microphone preferences"
+        ) {
+            VStack(alignment: .leading, spacing: 16) {
+                // Input Mode Picker
+                HStack {
+                    Text("Input Mode")
+                        .font(.system(size: 13, weight: .medium))
+
+                    Spacer()
+
+                    Picker("", selection: Binding(
+                        get: { audioDeviceManager.inputMode },
+                        set: { audioDeviceManager.selectInputMode($0) }
+                    )) {
+                        ForEach(AudioInputMode.allCases, id: \.self) { mode in
+                            Text(mode.rawValue).tag(mode)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .frame(width: 160)
+                }
+
+                Divider()
+
+                // Current Device Display
+                HStack(spacing: 12) {
+                    Image(systemName: "waveform")
+                        .font(.system(size: 14))
+                        .foregroundColor(.secondary)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Current Device")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                        Text(currentDeviceName)
+                            .font(.system(size: 13, weight: .medium))
+                    }
+
+                    Spacer()
+
+                    Button(action: { audioDeviceManager.loadAvailableDevices() }) {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 12))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.secondary)
+                }
+
+                // Device selection for custom mode
+                if audioDeviceManager.inputMode == .custom {
+                    Divider()
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Select Device")
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+
+                        ForEach(audioDeviceManager.availableDevices, id: \.id) { device in
+                            AudioDeviceRow(
+                                name: device.name,
+                                isSelected: audioDeviceManager.selectedDeviceID == device.id,
+                                isActive: audioDeviceManager.getCurrentDevice() == device.id
+                            ) {
+                                audioDeviceManager.selectDevice(id: device.id)
+                            }
+                        }
+                    }
+                }
+
+                // Prioritized devices hint
+                if audioDeviceManager.inputMode == .prioritized {
+                    Divider()
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Priority Order")
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+
+                        if audioDeviceManager.prioritizedDevices.isEmpty {
+                            Text("No prioritized devices set")
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
+                                .italic()
+                        } else {
+                            ForEach(audioDeviceManager.prioritizedDevices.sorted(by: { $0.priority < $1.priority })) { device in
+                                HStack(spacing: 8) {
+                                    Text("\(device.priority + 1).")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(.secondary)
+                                        .frame(width: 20)
+                                    Text(device.name)
+                                        .font(.system(size: 13))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private var currentDeviceName: String {
+        let deviceId = audioDeviceManager.getCurrentDevice()
+        if let device = audioDeviceManager.availableDevices.first(where: { $0.id == deviceId }) {
+            return device.name
+        }
+        return audioDeviceManager.getSystemDefaultDeviceName() ?? "No device"
+    }
+}
+
+struct AudioDeviceRow: View {
+    let name: String
+    let isSelected: Bool
+    let isActive: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 14))
+                    .foregroundColor(isSelected ? .blue : .secondary)
+
+                Text(name)
+                    .font(.system(size: 13))
+                    .foregroundColor(.primary)
+
+                Spacer()
+
+                if isActive {
+                    Text("Active")
+                        .font(.system(size: 10))
+                        .foregroundColor(.green)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color.green.opacity(0.1))
+                        .cornerRadius(4)
+                }
+            }
+            .padding(.vertical, 6)
+            .padding(.horizontal, 8)
+            .background(isSelected ? Color.blue.opacity(0.1) : Color.clear)
+            .cornerRadius(6)
+        }
+        .buttonStyle(.plain)
     }
 }
