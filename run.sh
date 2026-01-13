@@ -1,47 +1,19 @@
 #!/bin/bash
-
-# VoiceInk Build and Run Script
+# Build, install to /Applications, and run VoiceInk
 
 set -e
 
-PROJECT_DIR="/Users/boemare/Documents/1.Projects/voice"
-APP_NAME="VoiceInk.app"
-DEST="/Applications/$APP_NAME"
+echo "Killing existing VoiceInk..."
+pkill -x VoiceInk 2>/dev/null || true
 
-echo "==> Killing any running VoiceInk instances..."
-pkill -f VoiceInk 2>/dev/null || true
-sleep 1
+echo "Building..."
+xcodebuild -scheme VoiceInk -configuration Debug -destination 'platform=macOS' build 2>&1 | grep -E "(error:|warning:|BUILD|Compiling)" || true
 
-echo "==> Building VoiceInk..."
-cd "$PROJECT_DIR"
-xcodebuild -project VoiceInk.xcodeproj \
-    -scheme VoiceInk \
-    -configuration Debug \
-    -destination 'platform=macOS' \
-    CODE_SIGN_IDENTITY="-" \
-    CODE_SIGNING_REQUIRED=NO \
-    CODE_SIGNING_ALLOWED=NO \
-    build 2>&1 | grep -E "BUILD SUCCEEDED|BUILD FAILED|error:"
+echo "Copying to /Applications..."
+rm -rf /Applications/VoiceInk.app
+cp -R ~/Library/Developer/Xcode/DerivedData/VoiceInk-efcgmsnpliraymgbblhfkpyiaryf/Build/Products/Debug/VoiceInk.app /Applications/
 
-if [ ${PIPESTATUS[0]} -ne 0 ]; then
-    echo "==> Build failed!"
-    exit 1
-fi
+echo "Launching..."
+open /Applications/VoiceInk.app
 
-BUILD_PATH=$(find ~/Library/Developer/Xcode/DerivedData -path "*/VoiceInk-*/Build/Products/Debug/VoiceInk.app" -not -path "*/Index.noindex/*" 2>/dev/null | head -1)
-
-if [ -z "$BUILD_PATH" ]; then
-    echo "==> Could not find built app!"
-    exit 1
-fi
-
-echo "==> Removing old VoiceInk from Applications..."
-rm -rf "$DEST"
-
-echo "==> Copying new build to Applications..."
-cp -R "$BUILD_PATH" "$DEST"
-
-echo "==> Launching VoiceInk..."
-open "$DEST"
-
-echo "==> Done!"
+echo "Done!"
