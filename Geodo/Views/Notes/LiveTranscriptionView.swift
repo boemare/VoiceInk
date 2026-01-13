@@ -13,16 +13,7 @@ struct LiveTranscriptionView: View {
             HStack {
                 HStack(spacing: 6) {
                     if isRecording {
-                        Circle()
-                            .fill(.red)
-                            .frame(width: 8, height: 8)
-                            .overlay(
-                                Circle()
-                                    .fill(.red.opacity(0.5))
-                                    .frame(width: 16, height: 16)
-                                    .scaleEffect(isRecording ? 1.2 : 1.0)
-                                    .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: isRecording)
-                            )
+                        LivePulsingDot()
                     }
                     Text("Live Transcription")
                         .font(.system(size: 12, weight: .semibold))
@@ -141,6 +132,29 @@ private struct ChunkBubble: View {
         let minutes = Int(seconds) / 60
         let secs = Int(seconds) % 60
         return String(format: "%d:%02d", minutes, secs)
+    }
+}
+
+// MARK: - Pulsing Dot Animation
+
+private struct LivePulsingDot: View {
+    @State private var isAnimating = false
+
+    var body: some View {
+        Circle()
+            .fill(.red)
+            .frame(width: 8, height: 8)
+            .overlay(
+                Circle()
+                    .fill(.red.opacity(0.5))
+                    .frame(width: 16, height: 16)
+                    .scaleEffect(isAnimating ? 1.2 : 0.8)
+            )
+            .onAppear {
+                withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
+                    isAnimating = true
+                }
+            }
     }
 }
 

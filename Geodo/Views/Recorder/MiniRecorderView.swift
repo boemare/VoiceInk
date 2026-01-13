@@ -138,16 +138,7 @@ struct MiniRecorderView: View {
         VStack(alignment: .leading, spacing: 6) {
             // Header
             HStack(spacing: 6) {
-                Circle()
-                    .fill(.red)
-                    .frame(width: 6, height: 6)
-                    .overlay(
-                        Circle()
-                            .fill(.red.opacity(0.4))
-                            .frame(width: 12, height: 12)
-                            .scaleEffect(1.2)
-                            .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: true)
-                    )
+                PulsingDot()
                 Text("Live")
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundColor(.secondary)
@@ -198,5 +189,28 @@ struct MiniRecorderView: View {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .strokeBorder(Color.blue.opacity(0.3), lineWidth: 1)
         )
+    }
+}
+
+// MARK: - Pulsing Dot Animation
+
+private struct PulsingDot: View {
+    @State private var isAnimating = false
+
+    var body: some View {
+        Circle()
+            .fill(.red)
+            .frame(width: 6, height: 6)
+            .overlay(
+                Circle()
+                    .fill(.red.opacity(0.4))
+                    .frame(width: 12, height: 12)
+                    .scaleEffect(isAnimating ? 1.2 : 0.8)
+            )
+            .onAppear {
+                withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
+                    isAnimating = true
+                }
+            }
     }
 }
