@@ -3,6 +3,7 @@ import Cocoa
 import KeyboardShortcuts
 import LaunchAtLogin
 import AVFoundation
+import FluidAudio
 
 struct SettingsView: View {
     @EnvironmentObject private var updaterViewModel: UpdaterViewModel
@@ -300,6 +301,8 @@ struct SettingsView: View {
                             .settingsDescription()
                     }
                 }
+
+                DiarizationSettingsSection()
 
                 PowerModeSettingsSection()
 
@@ -979,5 +982,86 @@ struct SettingsNavigationRow: View {
             .padding(.vertical, 4)
         }
         .buttonStyle(.plain)
+    }
+}
+
+struct DiarizationSettingsSection: View {
+    @ObservedObject private var diarizationService = DiarizationService.shared
+    @State private var isDownloading = false
+    @State private var isModelReady = false
+    @State private var downloadError: String?
+
+    var body: some View {
+        SettingsSection(
+            icon: "person.2.wave.2",
+            title: "Speaker Diarization",
+            subtitle: "Identify speakers in meeting recordings"
+        ) {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Speaker diarization identifies who spoke when in your meeting recordings. Models are downloaded automatically on first use (~150MB).")
+                    .settingsDescription()
+
+                HStack(spacing: 12) {
+                    if isDownloading {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                        Text("Downloading models...")
+                            .font(.system(size: 13))
+                            .foregroundColor(.secondary)
+                    } else if isModelReady {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                        Text("Models ready")
+                            .font(.system(size: 13))
+                            .foregroundColor(.secondary)
+                    } else {
+                        Button("Download Diarization Models") {
+                            downloadModels()
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                    }
+
+                    Spacer()
+                }
+
+                if let error = downloadError {
+                    Text(error)
+                        .font(.system(size: 12))
+                        .foregroundColor(.red)
+                }
+            }
+        }
+        .onAppear {
+            checkModelStatus()
+        }
+    }
+
+    private func checkModelStatus() {
+        // Check if models exist in cache
+        let modelsDir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+            .appendingPathComponent("FluidAudio/Models/speaker-diarization-offline", isDirectory: true)
+        isModelReady = FileManager.default.fileExists(atPath: modelsDir.path)
+    }
+
+    private func downloadModels() {
+        isDownloading = true
+        downloadError = nil
+
+        Task.detached(priority: .userInitiated) {
+            do {
+                let diarizer = OfflineDiarizerManager(config: .default)
+                try await diarizer.prepareModels()
+                await MainActor.run {
+                    isDownloading = false
+                    isModelReady = true
+                }
+            } catch {
+                await MainActor.run {
+                    isDownloading = false
+                    downloadError = "Failed to download: \(error.localizedDescription)"
+                }
+            }
+        }
     }
 }
