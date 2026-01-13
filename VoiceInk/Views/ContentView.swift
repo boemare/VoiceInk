@@ -81,6 +81,18 @@ struct ContentView: View {
             if viewType == .audioInput {
                 return false  // Audio Input is now under Settings
             }
+            if viewType == .dictionary {
+                return false  // Dictionary is now under Settings
+            }
+            if viewType == .enhancement {
+                return false  // Enhancement is now under Settings
+            }
+            if viewType == .models {
+                return false  // AI Models is now under Settings
+            }
+            if viewType == .transcribeAudio {
+                return false  // Transcribe Audio is now under Settings
+            }
             return true
         }
     }

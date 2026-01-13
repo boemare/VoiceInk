@@ -426,6 +426,69 @@ struct SettingsView: View {
                 ) {
                     DiagnosticsSettingsView()
                 }
+
+                // Additional Settings Navigation
+                SettingsSection(
+                    icon: "ellipsis.circle",
+                    title: "More Settings",
+                    subtitle: "Additional configuration options"
+                ) {
+                    VStack(spacing: 0) {
+                        SettingsNavigationRow(
+                            icon: "brain.head.profile",
+                            title: "AI Models",
+                            subtitle: "Manage transcription models"
+                        ) {
+                            NotificationCenter.default.post(
+                                name: .navigateToDestination,
+                                object: nil,
+                                userInfo: ["destination": "AI Models"]
+                            )
+                        }
+
+                        Divider().padding(.vertical, 8)
+
+                        SettingsNavigationRow(
+                            icon: "wand.and.stars",
+                            title: "Enhancement",
+                            subtitle: "AI enhancement settings"
+                        ) {
+                            NotificationCenter.default.post(
+                                name: .navigateToDestination,
+                                object: nil,
+                                userInfo: ["destination": "Enhancement"]
+                            )
+                        }
+
+                        Divider().padding(.vertical, 8)
+
+                        SettingsNavigationRow(
+                            icon: "character.book.closed.fill",
+                            title: "Dictionary",
+                            subtitle: "Word replacements and vocabulary"
+                        ) {
+                            NotificationCenter.default.post(
+                                name: .navigateToDestination,
+                                object: nil,
+                                userInfo: ["destination": "Dictionary"]
+                            )
+                        }
+
+                        Divider().padding(.vertical, 8)
+
+                        SettingsNavigationRow(
+                            icon: "waveform.circle.fill",
+                            title: "Transcribe Audio",
+                            subtitle: "Transcribe audio files"
+                        ) {
+                            NotificationCenter.default.post(
+                                name: .navigateToDestination,
+                                object: nil,
+                                userInfo: ["destination": "Transcribe Audio"]
+                            )
+                        }
+                    }
+                }
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 6)
@@ -858,6 +921,41 @@ struct AudioDeviceRow: View {
             .padding(.horizontal, 8)
             .background(isSelected ? Color.blue.opacity(0.1) : Color.clear)
             .cornerRadius(6)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+struct SettingsNavigationRow: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.system(size: 16))
+                    .foregroundColor(.accentColor)
+                    .frame(width: 24)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.primary)
+                    Text(subtitle)
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.secondary)
+            }
+            .padding(.vertical, 4)
         }
         .buttonStyle(.plain)
     }
