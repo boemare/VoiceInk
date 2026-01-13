@@ -9,7 +9,6 @@ class DiarizationService: ObservableObject {
     static let shared = DiarizationService()
 
     private let logger = Logger(subsystem: "com.prakashjoshipax.voiceink", category: "DiarizationService")
-    private var offlineDiarizer: OfflineDiarizerManager?
 
     @Published var isDiarizationEnabled: Bool {
         didSet {
@@ -91,24 +90,14 @@ class DiarizationService: ObservableObject {
     /// Run speaker diarization on audio file using FluidAudio
     private func runDiarization(on audioURL: URL) async throws -> DiarizationResult {
         let startTime = Date()
-
-        // Initialize diarizer if needed
-        if offlineDiarizer == nil {
-            logger.info("Initializing OfflineDiarizerManager...")
-            offlineDiarizer = OfflineDiarizerManager(config: .default)
-        }
-
-        guard let diarizer = offlineDiarizer else {
-            throw DiarizationError.diarizationFailed("Failed to initialize diarizer")
-        }
-
-        // Prepare models (downloads if needed, ~150MB first time)
-        logger.info("Preparing diarization models...")
-        try await diarizer.prepareModels()
-
-        // Run diarization
         logger.info("Running speaker diarization on \(audioURL.lastPathComponent)...")
-        let fluidResult = try await diarizer.process(audioURL)
+
+        // Run heavy processing off the main actor
+        let fluidResult = try await Task.detached(priority: .userInitiated) {
+            let diarizer = OfflineDiarizerManager(config: .default)
+            try await diarizer.prepareModels()
+            return try await diarizer.process(audioURL)
+        }.value
 
         let processingDuration = Date().timeIntervalSince(startTime)
 

@@ -1038,10 +1038,21 @@ struct DiarizationSettingsSection: View {
     }
 
     private func checkModelStatus() {
-        // Check if models exist in cache
+        // Check if models exist by looking for compiled CoreML models in FluidAudio cache
         let modelsDir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-            .appendingPathComponent("FluidAudio/Models/speaker-diarization-offline", isDirectory: true)
-        isModelReady = FileManager.default.fileExists(atPath: modelsDir.path)
+            .appendingPathComponent("FluidAudio/Models", isDirectory: true)
+
+        // Check if the models directory has any .mlmodelc files (compiled CoreML models)
+        if let contents = try? FileManager.default.contentsOfDirectory(atPath: modelsDir.path) {
+            let hasModels = contents.contains { item in
+                let itemPath = modelsDir.appendingPathComponent(item).path
+                var isDir: ObjCBool = false
+                return FileManager.default.fileExists(atPath: itemPath, isDirectory: &isDir) && isDir.boolValue
+            }
+            isModelReady = hasModels
+        } else {
+            isModelReady = false
+        }
     }
 
     private func downloadModels() {
@@ -1053,13 +1064,13 @@ struct DiarizationSettingsSection: View {
                 let diarizer = OfflineDiarizerManager(config: .default)
                 try await diarizer.prepareModels()
                 await MainActor.run {
-                    isDownloading = false
-                    isModelReady = true
+                    self.isDownloading = false
+                    self.isModelReady = true
                 }
             } catch {
                 await MainActor.run {
-                    isDownloading = false
-                    downloadError = "Failed to download: \(error.localizedDescription)"
+                    self.isDownloading = false
+                    self.downloadError = "Failed to download: \(error.localizedDescription)"
                 }
             }
         }
