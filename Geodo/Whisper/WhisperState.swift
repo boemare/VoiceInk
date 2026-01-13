@@ -433,7 +433,7 @@ class WhisperState: NSObject, ObservableObject {
                     promptName: transcription.promptName,
                     transcriptionDuration: transcription.transcriptionDuration,
                     enhancementDuration: transcription.enhancementDuration,
-                    videoDescriptionStatus: validVideoURL != nil ? VideoDescriptionStatus.pending.rawValue : nil
+                    videoDescriptionStatus: nil // Manual trigger only
                 )
                 modelContext.insert(doItem)
                 try? modelContext.save()
@@ -445,14 +445,7 @@ class WhisperState: NSObject, ObservableObject {
                 // Post notification for Dos UI to refresh
                 NotificationCenter.default.post(name: .doCreated, object: doItem)
 
-                // Trigger background video description generation
-                if let videoURLString = validVideoURL, let videoURL = URL(string: videoURLString) {
-                    let doId = doItem.id
-                    Task.detached { [weak self] in
-                        guard let self = self else { return }
-                        await self.generateVideoDescription(forDoId: doId, videoURL: videoURL)
-                    }
-                }
+                // Video description is now manual - user must click button in DoDetailView
 
                 // Reset dos mode and video file
                 isDosMode = false

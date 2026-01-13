@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 import AVKit
 
 // Wrapper view for safe video playback
@@ -23,7 +24,9 @@ struct VideoPlayerView: NSViewRepresentable {
 }
 
 struct DoDetailView: View {
-    let doItem: Do
+    @Bindable var doItem: Do
+    @Environment(\.modelContext) private var modelContext
+    @State private var isGeneratingDescription = false
 
     private var videoURL: URL? {
         guard let urlString = doItem.videoFileURL else { return nil }
@@ -170,8 +173,8 @@ struct DoDetailView: View {
                     }
                     .padding(.horizontal, 16)
 
-                    // Video Description section
-                    if doItem.videoDescription != nil || doItem.videoDescriptionStatus == VideoDescriptionStatus.processing.rawValue || doItem.videoDescriptionStatus == VideoDescriptionStatus.pending.rawValue || doItem.videoDescriptionStatus == VideoDescriptionStatus.failed.rawValue {
+                    // Video Description section - always show if video exists
+                    if hasVideoFile {
                         Divider()
                             .padding(.horizontal, 16)
 
@@ -183,8 +186,8 @@ struct DoDetailView: View {
 
                                 Spacer()
 
-                                // Status indicator
-                                if doItem.videoDescriptionStatus == VideoDescriptionStatus.processing.rawValue || doItem.videoDescriptionStatus == VideoDescriptionStatus.pending.rawValue {
+                                // Status indicator or generate button
+                                if isGeneratingDescription || doItem.videoDescriptionStatus == VideoDescriptionStatus.processing.rawValue || doItem.videoDescriptionStatus == VideoDescriptionStatus.pending.rawValue {
                                     HStack(spacing: 6) {
                                         ProgressView()
                                             .controlSize(.small)
@@ -192,6 +195,22 @@ struct DoDetailView: View {
                                             .font(.system(size: 11))
                                             .foregroundColor(.secondary)
                                     }
+                                } else if doItem.videoDescription == nil {
+                                    // Show generate button when no description exists
+                                    Button(action: {
+                                        Task {
+                                            await generateVideoDescription()
+                                        }
+                                    }) {
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "wand.and.stars")
+                                                .font(.system(size: 11))
+                                            Text(doItem.videoDescriptionStatus == VideoDescriptionStatus.failed.rawValue ? "Retry" : "Describe")
+                                                .font(.system(size: 11, weight: .medium))
+                                        }
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .controlSize(.small)
                                 }
                             }
 
@@ -206,7 +225,7 @@ struct DoDetailView: View {
                                         RoundedRectangle(cornerRadius: 10, style: .continuous)
                                             .fill(.thinMaterial)
                                     )
-                            } else if doItem.videoDescriptionStatus == VideoDescriptionStatus.failed.rawValue {
+                            } else if doItem.videoDescriptionStatus == VideoDescriptionStatus.failed.rawValue && !isGeneratingDescription {
                                 HStack(spacing: 8) {
                                     Image(systemName: "exclamationmark.triangle")
                                         .foregroundColor(.orange)
@@ -242,5 +261,39 @@ struct DoDetailView: View {
             }
         }
         .background(Color(NSColor.controlBackgroundColor))
+    }
+
+    // MARK: - Video Description Generation
+
+    private func generateVideoDescription() async {
+        guard let url = videoURL else { return }
+
+        isGeneratingDescription = true
+        doItem.videoDescriptionStatus = VideoDescriptionStatus.processing.rawValue
+        doItem.videoDescriptionError = nil
+        try? modelContext.save()
+
+        do {
+            let result = try await VideoAnalysisService.shared.analyzeVideo(at: url)
+
+            await MainActor.run {
+                doItem.videoDescription = result.description
+                doItem.videoDescriptionStatus = VideoDescriptionStatus.completed.rawValue
+                doItem.videoDescriptionModelName = result.modelName
+                try? modelContext.save()
+                isGeneratingDescription = false
+
+                NotificationCenter.default.post(name: .doDescriptionUpdated, object: doItem)
+            }
+        } catch {
+            await MainActor.run {
+                doItem.videoDescriptionStatus = VideoDescriptionStatus.failed.rawValue
+                doItem.videoDescriptionError = error.localizedDescription
+                try? modelContext.save()
+                isGeneratingDescription = false
+
+                NotificationCenter.default.post(name: .doDescriptionUpdated, object: doItem)
+            }
+        }
     }
 }

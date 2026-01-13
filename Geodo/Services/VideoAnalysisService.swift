@@ -99,7 +99,7 @@ class VideoAnalysisService {
 
         return VideoAnalysisResult(
             description: description,
-            modelName: "gemini-2.5-flash",
+            modelName: "gemini-1.5-flash-8b", // Free tier: 4M TPM, 15 RPM
             duration: processingDuration
         )
     }
@@ -141,7 +141,7 @@ class VideoAnalysisService {
     // MARK: - Frame-based Analysis
 
     private func analyzeFrames(_ frames: [CGImage], apiKey: String) async throws -> String {
-        let generateURL = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=\(apiKey)")!
+        let generateURL = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=\(apiKey)")!
 
         var request = URLRequest(url: generateURL)
         request.httpMethod = "POST"
@@ -296,7 +296,7 @@ class VideoAnalysisService {
     }
 
     private func generateVideoDescription(fileUri: String, apiKey: String) async throws -> String {
-        let generateURL = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=\(apiKey)")!
+        let generateURL = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=\(apiKey)")!
 
         var request = URLRequest(url: generateURL)
         request.httpMethod = "POST"
