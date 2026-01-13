@@ -44,7 +44,8 @@ struct GeodoApp: App {
             Note.self,
             Do.self,
             VocabularyWord.self,
-            WordReplacement.self
+            WordReplacement.self,
+            Snippet.self
         ])
         var initializationFailed = false
         
@@ -146,7 +147,7 @@ struct GeodoApp: App {
             )
 
             // Dictionary configuration
-            let dictionarySchema = Schema([VocabularyWord.self, WordReplacement.self])
+            let dictionarySchema = Schema([VocabularyWord.self, WordReplacement.self, Snippet.self])
             let dictionaryConfig = ModelConfiguration(
                 "dictionary",
                 schema: dictionarySchema,
@@ -176,7 +177,7 @@ struct GeodoApp: App {
             )
 
             // Dictionary configuration
-            let dictionarySchema = Schema([VocabularyWord.self, WordReplacement.self])
+            let dictionarySchema = Schema([VocabularyWord.self, WordReplacement.self, Snippet.self])
             let dictionaryConfig = ModelConfiguration(
                 "dictionary",
                 schema: dictionarySchema,

@@ -9,22 +9,27 @@ struct DictionarySettingsView: View {
     enum DictionarySection: String, CaseIterable {
         case replacements = "Word Replacements"
         case spellings = "Vocabulary"
-        
+        case snippets = "Snippets"
+
         var description: String {
             switch self {
             case .spellings:
                 return "Add words to help Geodo recognize them properly"
             case .replacements:
-                return "Automatically replace specific words/phrases with custom formatted text "
+                return "Automatically replace specific words/phrases with custom formatted text"
+            case .snippets:
+                return "Voice shortcuts that expand trigger phrases into full text"
             }
         }
-        
+
         var icon: String {
             switch self {
             case .spellings:
                 return "character.book.closed.fill"
             case .replacements:
                 return "arrow.2.squarepath"
+            case .snippets:
+                return "text.badge.plus"
             }
         }
     }
@@ -111,6 +116,9 @@ struct DictionarySettingsView: View {
                     .background(CardBackground(isSelected: false))
             case .replacements:
                 WordReplacementView()
+                    .background(CardBackground(isSelected: false))
+            case .snippets:
+                SnippetsView()
                     .background(CardBackground(isSelected: false))
             }
         }
