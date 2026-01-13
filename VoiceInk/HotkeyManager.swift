@@ -375,6 +375,9 @@ class HotkeyManager: ObservableObject {
                         Task {
                             await whisperState.startScreenRecordingForDosMode()
                         }
+                    } else {
+                        // Tap-tap mode: show notes UI immediately
+                        whisperState.isNotesMode = true
                     }
                 } else {
                     whisperState.isNotesMode = false  // Hold-and-release mode: paste to cursor
@@ -440,6 +443,9 @@ class HotkeyManager: ObservableObject {
                     Task {
                         await whisperState.startScreenRecordingForDosMode()
                     }
+                } else {
+                    // Tap-tap mode: show notes UI immediately
+                    whisperState.isNotesMode = true
                 }
             } else {
                 whisperState.isNotesMode = false  // Hold-and-release mode: paste to cursor
