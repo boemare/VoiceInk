@@ -20,7 +20,7 @@ final class MediaController: ObservableObject {
 
     private init() {
         if UserDefaults.standard.object(forKey: "isSystemMuteEnabled") == nil {
-            UserDefaults.standard.set(true, forKey: "isSystemMuteEnabled")
+            UserDefaults.standard.set(false, forKey: "isSystemMuteEnabled")
         }
         if UserDefaults.standard.object(forKey: "audioResumptionDelay") == nil {
             UserDefaults.standard.set(0.0, forKey: "audioResumptionDelay")
