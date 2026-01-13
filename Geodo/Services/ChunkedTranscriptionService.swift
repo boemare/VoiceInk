@@ -29,6 +29,7 @@ actor ChunkedTranscriptionService {
     // Transcription
     private var transcriptionCallback: (([Float]) async throws -> String)?
     private var isRunning = false
+    private var isTranscribing = false  // Prevent concurrent transcription
 
     // Results
     private var transcribedChunks: [TranscribedChunk] = []
@@ -65,8 +66,13 @@ actor ChunkedTranscriptionService {
 
         logger.notice("Stopping chunked transcription service")
 
-        // Transcribe any remaining audio in buffer
-        if audioBuffer.count > Int(sampleRate * 0.5) { // At least 0.5 seconds
+        // Wait for any in-progress transcription to complete
+        while isTranscribing {
+            try? await Task.sleep(nanoseconds: 50_000_000)  // 50ms
+        }
+
+        // Transcribe any remaining audio in buffer (skip if too short)
+        if audioBuffer.count > Int(sampleRate * 1.0) { // At least 1 second
             await transcribeCurrentBuffer(isFinal: true)
         }
 
@@ -82,9 +88,9 @@ actor ChunkedTranscriptionService {
         audioBuffer.append(contentsOf: samples)
         totalSamplesReceived += samples.count
 
-        // Check if we have enough samples for a chunk
+        // Check if we have enough samples for a chunk and not already transcribing
         let samplesInCurrentChunk = audioBuffer.count
-        if samplesInCurrentChunk >= minChunkSamples {
+        if samplesInCurrentChunk >= minChunkSamples && !isTranscribing {
             await transcribeCurrentBuffer(isFinal: false)
         }
     }
@@ -106,12 +112,20 @@ actor ChunkedTranscriptionService {
         lastChunkEndSample = 0
         chunkIndex = 0
         transcribedChunks = []
+        isTranscribing = false
     }
 
     // MARK: - Private
 
     private func transcribeCurrentBuffer(isFinal: Bool) async {
         guard let transcribe = transcriptionCallback else { return }
+        guard !isTranscribing else {
+            logger.debug("Skipping chunk - transcription already in progress")
+            return
+        }
+
+        isTranscribing = true
+        defer { isTranscribing = false }
 
         let samplesToTranscribe = audioBuffer
         let startSample = lastChunkEndSample
@@ -121,18 +135,39 @@ actor ChunkedTranscriptionService {
         let startTime = Double(startSample) / sampleRate
         let endTime = Double(endSample) / sampleRate
 
-        logger.debug("Transcribing chunk \(self.chunkIndex): \(samplesToTranscribe.count) samples (\(String(format: "%.1f", startTime))s - \(String(format: "%.1f", endTime))s)")
+        // Clear buffer before transcribing (we've captured the samples)
+        if isFinal {
+            audioBuffer = []
+            lastChunkEndSample = endSample
+        } else {
+            // Keep overlap samples for continuity
+            if audioBuffer.count > overlapSamples {
+                audioBuffer = Array(audioBuffer.suffix(overlapSamples))
+                lastChunkEndSample = endSample - overlapSamples
+            } else {
+                audioBuffer = []
+                lastChunkEndSample = endSample
+            }
+        }
+
+        let currentChunkIndex = chunkIndex
+        chunkIndex += 1
+
+        logger.debug("Transcribing chunk \(currentChunkIndex): \(samplesToTranscribe.count) samples (\(String(format: "%.1f", startTime))s - \(String(format: "%.1f", endTime))s)")
 
         do {
             let text = try await transcribe(samplesToTranscribe)
             let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
 
-            if !trimmedText.isEmpty {
+            // Filter out common whisper artifacts
+            let cleanedText = cleanTranscriptionArtifacts(trimmedText)
+
+            if !cleanedText.isEmpty {
                 let chunk = TranscribedChunk(
-                    text: trimmedText,
+                    text: cleanedText,
                     startTime: startTime,
                     endTime: endTime,
-                    chunkIndex: chunkIndex
+                    chunkIndex: currentChunkIndex
                 )
 
                 transcribedChunks.append(chunk)
@@ -144,61 +179,94 @@ actor ChunkedTranscriptionService {
                     }
                 }
 
-                logger.notice("Chunk \(self.chunkIndex) transcribed: \"\(trimmedText.prefix(50))...\"")
+                logger.notice("Chunk \(currentChunkIndex) transcribed: \"\(cleanedText.prefix(50))\"")
             }
         } catch {
-            logger.error("Failed to transcribe chunk \(self.chunkIndex): \(error.localizedDescription)")
+            logger.error("Failed to transcribe chunk \(currentChunkIndex): \(error.localizedDescription)")
+        }
+    }
+
+    /// Clean common transcription artifacts from Whisper
+    private func cleanTranscriptionArtifacts(_ text: String) -> String {
+        var cleaned = text
+
+        // Remove common Whisper artifacts
+        let artifacts = [
+            "[BLANK_AUDIO]",
+            "[MUSIC]",
+            "[APPLAUSE]",
+            "(music)",
+            "(applause)",
+            "...",
+            "Thank you for watching.",
+            "Thanks for watching.",
+            "Subscribe to my channel.",
+            "Please subscribe.",
+        ]
+
+        for artifact in artifacts {
+            cleaned = cleaned.replacingOccurrences(of: artifact, with: "", options: .caseInsensitive)
         }
 
-        // Update state for next chunk
-        chunkIndex += 1
+        // Remove repeated phrases (common whisper hallucination)
+        cleaned = removeRepeatedPhrases(cleaned)
 
-        if isFinal {
-            audioBuffer = []
-            lastChunkEndSample = endSample
-        } else {
-            // Keep overlap samples for continuity
-            if audioBuffer.count > overlapSamples {
-                let keepFrom = audioBuffer.count - overlapSamples
-                audioBuffer = Array(audioBuffer.suffix(overlapSamples))
-                lastChunkEndSample = endSample - overlapSamples
-            } else {
-                audioBuffer = []
-                lastChunkEndSample = endSample
+        return cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// Remove phrases that repeat more than twice
+    private func removeRepeatedPhrases(_ text: String) -> String {
+        let words = text.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
+        guard words.count > 6 else { return text }
+
+        // Check for repeating patterns of 2-4 words
+        for patternLength in 2...4 {
+            guard words.count >= patternLength * 3 else { continue }
+
+            var i = 0
+            var result: [String] = []
+            var skipUntil = -1
+
+            while i < words.count {
+                if i < skipUntil {
+                    i += 1
+                    continue
+                }
+
+                // Check if the next patternLength words repeat
+                if i + patternLength * 2 <= words.count {
+                    let pattern = Array(words[i..<(i + patternLength)])
+                    var repeatCount = 1
+
+                    var j = i + patternLength
+                    while j + patternLength <= words.count {
+                        let nextSegment = Array(words[j..<(j + patternLength)])
+                        if nextSegment == pattern {
+                            repeatCount += 1
+                            j += patternLength
+                        } else {
+                            break
+                        }
+                    }
+
+                    if repeatCount >= 3 {
+                        // Keep only one instance
+                        result.append(contentsOf: pattern)
+                        skipUntil = j
+                        i = j
+                        continue
+                    }
+                }
+
+                result.append(words[i])
+                i += 1
+            }
+
+            if result.count < words.count {
+                return result.joined(separator: " ")
             }
         }
-    }
-}
 
-// MARK: - Sample Buffer for Real-time Streaming
-
-/// Thread-safe buffer for streaming audio samples from the recording callback
-class AudioSampleBuffer: @unchecked Sendable {
-    private let lock = NSLock()
-    private var samples: [Float] = []
-    private var callback: (([Float]) -> Void)?
-
-    /// Set the callback to receive samples
-    func setCallback(_ callback: @escaping ([Float]) -> Void) {
-        lock.lock()
-        defer { lock.unlock() }
-        self.callback = callback
-    }
-
-    /// Clear the callback
-    func clearCallback() {
-        lock.lock()
-        defer { lock.unlock() }
-        self.callback = nil
-    }
-
-    /// Append samples (called from audio callback thread)
-    func append(_ newSamples: [Float]) {
-        lock.lock()
-        let cb = callback
-        lock.unlock()
-
-        // Call callback immediately with new samples
-        cb?(newSamples)
+        return text
     }
 }

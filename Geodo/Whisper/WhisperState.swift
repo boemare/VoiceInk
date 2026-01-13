@@ -62,6 +62,7 @@ class WhisperState: NSObject, ObservableObject {
     }
     
     var whisperContext: WhisperContext?
+    var liveWhisperContext: WhisperContext?  // Dedicated context for live transcription
     let recorder = Recorder()
     let screenRecordingService = ScreenRecordingService()
     var recordedFile: URL? = nil
@@ -149,6 +150,13 @@ class WhisperState: NSObject, ObservableObject {
             await recorder.stopRecordingAsync()
             recorder.disableLiveTranscription()
 
+            // Release the live transcription context
+            if let liveContext = liveWhisperContext {
+                await liveContext.releaseResources()
+                liveWhisperContext = nil
+                logger.info("Released live transcription context")
+            }
+
             // Stop screen recording if it was active (Dos mode)
             if screenRecordingService.isRecording {
                 recordedVideoFile = try? await screenRecordingService.stopRecording()
@@ -216,19 +224,30 @@ class WhisperState: NSObject, ObservableObject {
                             // Enable live transcription in notes mode with local models
                             if self.isNotesMode && self.isLiveTranscriptionEnabled {
                                 if let model = self.currentTranscriptionModel, model.provider == .local {
-                                    // Set up transcription callback using the loaded whisper context
-                                    self.recorder.enableLiveTranscription { [weak self] samples in
-                                        guard let self = self,
-                                              let context = await self.whisperContext else {
-                                            return ""
+                                    // Load a dedicated WhisperContext for live transcription
+                                    if let localModel = self.availableModels.first(where: { $0.name == model.name }),
+                                       FileManager.default.fileExists(atPath: localModel.url.path) {
+                                        do {
+                                            self.liveWhisperContext = try await WhisperContext.createContext(path: localModel.url.path)
+                                            self.logger.info("Loaded dedicated WhisperContext for live transcription")
+
+                                            // Set up transcription callback using the dedicated context
+                                            self.recorder.enableLiveTranscription { [weak self] samples in
+                                                guard let self = self,
+                                                      let context = await self.liveWhisperContext else {
+                                                    return ""
+                                                }
+                                                let success = await context.fullTranscribe(samples: samples)
+                                                if success {
+                                                    return await context.getTranscription()
+                                                }
+                                                return ""
+                                            }
+                                            self.logger.info("Live transcription enabled for notes mode")
+                                        } catch {
+                                            self.logger.error("Failed to load live transcription context: \(error.localizedDescription)")
                                         }
-                                        let success = await context.fullTranscribe(samples: samples)
-                                        if success {
-                                            return await context.getTranscription()
-                                        }
-                                        return ""
                                     }
-                                    self.logger.info("Live transcription enabled for notes mode")
                                 }
                             }
 
