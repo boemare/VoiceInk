@@ -1,8 +1,10 @@
 import SwiftUI
+import SwiftData
 
 struct LicenseManagementView: View {
     @StateObject private var licenseViewModel = LicenseViewModel()
     @Environment(\.colorScheme) private var colorScheme
+    @Query(sort: \Transcription.timestamp) private var transcriptions: [Transcription]
     let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
     
     var body: some View {
@@ -11,7 +13,16 @@ struct LicenseManagementView: View {
                 // Hero Section
                 heroSection
                 
-                // Main Content
+                // Metrics Section
+                if !transcriptions.isEmpty {
+                    VStack(spacing: 24) {
+                        metricsHeroSection
+                        metricsCardsSection
+                    }
+                    .padding(32)
+                }
+
+                // License Content
                 VStack(spacing: 32) {
                     if case .licensed = licenseViewModel.licenseState {
                         activatedContent
@@ -23,6 +34,151 @@ struct LicenseManagementView: View {
             }
         }
         .background(Color(NSColor.controlBackgroundColor))
+    }
+
+    // MARK: - Metrics
+
+    private var metricsHeroSection: some View {
+        VStack(spacing: 10) {
+            HStack {
+                Spacer(minLength: 0)
+
+                (Text("You have saved ")
+                    .fontWeight(.bold)
+                    .foregroundColor(.white.opacity(0.85))
+                 +
+                 Text(formattedTimeSaved)
+                    .fontWeight(.black)
+                    .font(.system(size: 36, design: .rounded))
+                    .foregroundStyle(.white)
+                 +
+                 Text(" with VoiceInk")
+                    .fontWeight(.bold)
+                    .foregroundColor(.white.opacity(0.85))
+                )
+                .font(.system(size: 30))
+                .multilineTextAlignment(.center)
+
+                Spacer(minLength: 0)
+            }
+            .lineLimit(1)
+            .minimumScaleFactor(0.5)
+
+            Text(metricsSubtitle)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundColor(.white.opacity(0.85))
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+        }
+        .padding(28)
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(metricsGradient)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.1), lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.08), radius: 30, x: 0, y: 16)
+    }
+
+    private var metricsCardsSection: some View {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 200), spacing: 16)], spacing: 16) {
+            MetricCard(
+                icon: "mic.fill",
+                title: "Sessions Recorded",
+                value: "\(transcriptions.count)",
+                detail: "VoiceInk sessions completed",
+                color: .purple
+            )
+
+            MetricCard(
+                icon: "text.alignleft",
+                title: "Words Dictated",
+                value: formattedNumber(totalWordsTranscribed),
+                detail: "words generated",
+                color: Color(nsColor: .controlAccentColor)
+            )
+
+            MetricCard(
+                icon: "speedometer",
+                title: "Words Per Minute",
+                value: averageWordsPerMinute > 0
+                    ? String(format: "%.1f", averageWordsPerMinute)
+                    : "–",
+                detail: "VoiceInk vs. typing by hand",
+                color: .yellow
+            )
+
+            MetricCard(
+                icon: "keyboard.fill",
+                title: "Keystrokes Saved",
+                value: formattedNumber(totalKeystrokesSaved),
+                detail: "fewer keystrokes",
+                color: .orange
+            )
+        }
+    }
+
+    // MARK: - Metrics Calculations
+
+    private var totalWordsTranscribed: Int {
+        transcriptions.reduce(0) { $0 + $1.text.split(separator: " ").count }
+    }
+
+    private var totalRecordedTime: TimeInterval {
+        transcriptions.reduce(0) { $0 + $1.duration }
+    }
+
+    private var timeSaved: TimeInterval {
+        let averageTypingSpeed: Double = 35
+        let totalWords = Double(totalWordsTranscribed)
+        let estimatedTypingTime = (totalWords / averageTypingSpeed) * 60
+        return max(estimatedTypingTime - totalRecordedTime, 0)
+    }
+
+    private var averageWordsPerMinute: Double {
+        guard totalRecordedTime > 0 else { return 0 }
+        return Double(totalWordsTranscribed) / (totalRecordedTime / 60.0)
+    }
+
+    private var totalKeystrokesSaved: Int {
+        Int(Double(totalWordsTranscribed) * 5.0)
+    }
+
+    private var formattedTimeSaved: String {
+        guard timeSaved > 0 else { return "0 min" }
+        let formatter = DateComponentsFormatter()
+        formatter.maximumUnitCount = 2
+        formatter.unitsStyle = .full
+        formatter.allowedUnits = timeSaved >= 3600 ? [.hour, .minute] : [.minute, .second]
+        return formatter.string(from: timeSaved) ?? "0 min"
+    }
+
+    private var metricsSubtitle: String {
+        let wordsText = formattedNumber(totalWordsTranscribed)
+        let sessionCount = transcriptions.count
+        let sessionText = sessionCount == 1 ? "session" : "sessions"
+        return "Dictated \(wordsText) words across \(sessionCount) \(sessionText)."
+    }
+
+    private var metricsGradient: LinearGradient {
+        LinearGradient(
+            gradient: Gradient(colors: [
+                Color(nsColor: .controlAccentColor),
+                Color(nsColor: .controlAccentColor).opacity(0.85),
+                Color(nsColor: .controlAccentColor).opacity(0.7)
+            ]),
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    private func formattedNumber(_ value: Int) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        return formatter.string(from: NSNumber(value: value)) ?? "\(value)"
     }
     
     private var heroSection: some View {

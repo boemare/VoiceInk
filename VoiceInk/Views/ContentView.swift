@@ -93,6 +93,9 @@ struct ContentView: View {
             if viewType == .transcribeAudio {
                 return false  // Transcribe Audio is now under Settings
             }
+            if viewType == .metrics {
+                return false  // Dashboard is now inside VoiceInk Pro
+            }
             return true
         }
     }
