@@ -53,6 +53,15 @@ class VideoAnalysisService {
 
     private init() {}
 
+    /// Get the currently selected Gemini model from AI Enhancement settings
+    private var selectedGeminiModel: String {
+        let key = "GeminiSelectedModel"
+        if let savedModel = UserDefaults.standard.string(forKey: key), !savedModel.isEmpty {
+            return savedModel
+        }
+        return "gemini-2.0-flash-001" // Default fallback
+    }
+
     // MARK: - Main Analysis Entry Point
 
     func analyzeVideo(at url: URL) async throws -> VideoAnalysisResult {
@@ -99,7 +108,7 @@ class VideoAnalysisService {
 
         return VideoAnalysisResult(
             description: description,
-            modelName: "gemini-1.5-flash", // Free tier: 15 RPM, 1M TPM - supports vision
+            modelName: selectedGeminiModel,
             duration: processingDuration
         )
     }
@@ -141,7 +150,8 @@ class VideoAnalysisService {
     // MARK: - Frame-based Analysis
 
     private func analyzeFrames(_ frames: [CGImage], apiKey: String) async throws -> String {
-        let generateURL = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=\(apiKey)")!
+        let model = selectedGeminiModel
+        let generateURL = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/\(model):generateContent?key=\(apiKey)")!
 
         var request = URLRequest(url: generateURL)
         request.httpMethod = "POST"
@@ -305,7 +315,8 @@ class VideoAnalysisService {
     }
 
     private func generateVideoDescription(fileUri: String, apiKey: String) async throws -> String {
-        let generateURL = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=\(apiKey)")!
+        let model = selectedGeminiModel
+        let generateURL = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/\(model):generateContent?key=\(apiKey)")!
 
         var request = URLRequest(url: generateURL)
         request.httpMethod = "POST"
