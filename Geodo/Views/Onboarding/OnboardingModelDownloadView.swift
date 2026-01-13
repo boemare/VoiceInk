@@ -1,4 +1,5 @@
 import SwiftUI
+import FluidAudio
 
 struct OnboardingModelDownloadView: View {
     @Binding var hasCompletedOnboarding: Bool
@@ -8,7 +9,8 @@ struct OnboardingModelDownloadView: View {
     @State private var isDownloading = false
     @State private var isModelSet = false
     @State private var showTutorial = false
-    
+    @State private var isDiarizationPreparing = false
+
     private let turboModel = PredefinedModels.models.first { $0.name == "ggml-large-v3-turbo-q5_0" } as! LocalModel
     
     var body: some View {
@@ -166,6 +168,8 @@ struct OnboardingModelDownloadView: View {
                     withAnimation {
                         isModelSet = true
                     }
+                    // Prepare diarization models in background
+                    prepareDiarizationModels()
                 }
             }
         } else {
@@ -180,7 +184,22 @@ struct OnboardingModelDownloadView: View {
                         isModelSet = true
                         isDownloading = false
                     }
+                    // Prepare diarization models in background
+                    prepareDiarizationModels()
                 }
+            }
+        }
+    }
+
+    /// Prepare diarization models in the background (downloads ~150MB if needed)
+    private func prepareDiarizationModels() {
+        Task.detached(priority: .background) {
+            do {
+                let diarizer = OfflineDiarizerManager(config: .default)
+                try await diarizer.prepareModels()
+                print("Diarization models prepared successfully")
+            } catch {
+                print("Failed to prepare diarization models: \(error)")
             }
         }
     }

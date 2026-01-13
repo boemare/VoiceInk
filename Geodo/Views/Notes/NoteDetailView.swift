@@ -2,6 +2,13 @@ import SwiftUI
 
 struct NoteDetailView: View {
     let note: Note
+    @State private var viewMode: ViewMode = .transcript
+    @State private var showSpeakerEditor = false
+
+    enum ViewMode {
+        case transcript   // Plain text bubbles (Original/Enhanced)
+        case conversation // Speaker-labeled conversation
+    }
 
     private var hasAudioFile: Bool {
         if let urlString = note.audioFileURL,
@@ -44,6 +51,19 @@ struct NoteDetailView: View {
                 }
                 Spacer()
 
+                // View mode toggle (only show if diarization available)
+                if note.hasDiarization {
+                    Picker("View", selection: $viewMode) {
+                        Image(systemName: "bubble.left.and.bubble.right")
+                            .tag(ViewMode.conversation)
+                        Image(systemName: "doc.text")
+                            .tag(ViewMode.transcript)
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 70)
+                    .help("Toggle between conversation and transcript view")
+                }
+
                 // Copy button
                 Button(action: {
                     let textToCopy = note.enhancedText ?? note.text
@@ -61,23 +81,31 @@ struct NoteDetailView: View {
             Divider()
                 .padding(.horizontal, 16)
 
-            ScrollView {
-                VStack(spacing: 16) {
-                    NoteBubble(
-                        label: "Original",
-                        text: note.text,
-                        isEnhanced: false
-                    )
-
-                    if let enhancedText = note.enhancedText {
+            // Content area - conversation or transcript view
+            if viewMode == .conversation, note.hasDiarization, let segments = note.conversationSegments {
+                ConversationView(
+                    segments: segments,
+                    speakerMap: note.speakerMap
+                )
+            } else {
+                ScrollView {
+                    VStack(spacing: 16) {
                         NoteBubble(
-                            label: "Enhanced",
-                            text: enhancedText,
-                            isEnhanced: true
+                            label: "Original",
+                            text: note.text,
+                            isEnhanced: false
                         )
+
+                        if let enhancedText = note.enhancedText {
+                            NoteBubble(
+                                label: "Enhanced",
+                                text: enhancedText,
+                                isEnhanced: true
+                            )
+                        }
                     }
+                    .padding(16)
                 }
-                .padding(16)
             }
 
             if hasAudioFile, let urlString = note.audioFileURL,
