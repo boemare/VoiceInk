@@ -17,8 +17,27 @@ struct NoteDetailView: View {
             // Header
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Note")
-                        .font(.system(size: 18, weight: .semibold))
+                    HStack(spacing: 8) {
+                        Text(note.isMeeting ? "Meeting" : "Note")
+                            .font(.system(size: 18, weight: .semibold))
+
+                        // Meeting badge with source app
+                        if note.isMeeting, let sourceApp = note.sourceApp {
+                            HStack(spacing: 4) {
+                                Image(systemName: "person.2.fill")
+                                    .font(.system(size: 10))
+                                Text(sourceApp)
+                                    .font(.system(size: 10, weight: .medium))
+                            }
+                            .foregroundColor(.accentColor)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 3)
+                            .background(
+                                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                                    .fill(Color.accentColor.opacity(0.15))
+                            )
+                        }
+                    }
                     Text(note.timestamp, format: .dateTime.month(.wide).day().year().hour().minute())
                         .font(.system(size: 12))
                         .foregroundColor(.secondary)
@@ -88,6 +107,13 @@ struct NoteDetailView: View {
 
                 if let modelName = note.transcriptionModelName {
                     Label(modelName, systemImage: "cpu")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                }
+
+                // Show participants count for meetings
+                if note.isMeeting, let participants = note.participants, !participants.isEmpty {
+                    Label("\(participants.count)", systemImage: "person.2")
                         .font(.system(size: 11))
                         .foregroundColor(.secondary)
                 }

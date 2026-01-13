@@ -15,6 +15,12 @@ final class Note {
     var transcriptionDuration: TimeInterval?
     var enhancementDuration: TimeInterval?
 
+    // Meeting-specific fields
+    var isMeeting: Bool
+    var systemAudioFileURL: String?
+    var sourceApp: String?
+    var participants: [String]?
+
     init(text: String,
          duration: TimeInterval,
          enhancedText: String? = nil,
@@ -23,7 +29,11 @@ final class Note {
          aiEnhancementModelName: String? = nil,
          promptName: String? = nil,
          transcriptionDuration: TimeInterval? = nil,
-         enhancementDuration: TimeInterval? = nil) {
+         enhancementDuration: TimeInterval? = nil,
+         isMeeting: Bool = false,
+         systemAudioFileURL: String? = nil,
+         sourceApp: String? = nil,
+         participants: [String]? = nil) {
         self.id = UUID()
         self.text = text
         self.enhancedText = enhancedText
@@ -35,5 +45,9 @@ final class Note {
         self.promptName = promptName
         self.transcriptionDuration = transcriptionDuration
         self.enhancementDuration = enhancementDuration
+        self.isMeeting = isMeeting
+        self.systemAudioFileURL = systemAudioFileURL
+        self.sourceApp = sourceApp
+        self.participants = participants
     }
 }

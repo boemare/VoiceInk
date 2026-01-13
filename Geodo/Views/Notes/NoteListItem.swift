@@ -18,6 +18,25 @@ struct NoteListItem: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
+                    // Meeting indicator
+                    if note.isMeeting {
+                        HStack(spacing: 3) {
+                            Image(systemName: "person.2.fill")
+                                .font(.system(size: 9))
+                            if let sourceApp = note.sourceApp {
+                                Text(sourceApp)
+                                    .font(.system(size: 9, weight: .medium))
+                            }
+                        }
+                        .foregroundColor(.accentColor)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(
+                            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                .fill(Color.accentColor.opacity(0.15))
+                        )
+                    }
+
                     Text(note.timestamp, format: .dateTime.month(.abbreviated).day().hour().minute())
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(.secondary)
