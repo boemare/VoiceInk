@@ -8,7 +8,7 @@ enum ViewType: String, CaseIterable, Identifiable {
     case transcribeAudio = "Transcribe Audio"
     case history = "Quotes"
     case notes = "Notes"
-    case dos = "Dos"
+    case dos = "Do's"
     case models = "AI Models"
     case enhancement = "Enhancement"
     case powerMode = "Power Mode"

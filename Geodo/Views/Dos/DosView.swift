@@ -62,7 +62,7 @@ struct DosView: View {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.secondary)
                         .font(.system(size: 13))
-                    TextField("Search dos", text: $searchText)
+                    TextField("Search do's", text: $searchText)
                         .textFieldStyle(PlainTextFieldStyle())
                         .font(.system(size: 13))
                 }
@@ -176,7 +176,7 @@ struct DosView: View {
             }
             .frame(maxWidth: .infinity)
         }
-        .alert("Delete Selected Dos?", isPresented: $showDeleteConfirmation) {
+        .alert("Delete Selected Do's?", isPresented: $showDeleteConfirmation) {
             Button("Delete", role: .destructive) {
                 deleteSelectedDos()
             }

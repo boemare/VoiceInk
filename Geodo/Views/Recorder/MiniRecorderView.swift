@@ -101,7 +101,7 @@ struct MiniRecorderView: View {
 
     private var modeIdentifier: String {
         if whisperState.isDosMode {
-            return "dos"
+            return "do's"
         } else if whisperState.isNotesMode {
             return "notes"
         } else {
