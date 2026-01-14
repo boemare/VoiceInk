@@ -101,18 +101,6 @@ struct DoDetailView: View {
                             .foregroundColor(.secondary)
                         }
 
-                        // Copy button
-                        Button(action: {
-                            let textToCopy = doItem.enhancedText ?? doItem.text
-                            NSPasteboard.general.clearContents()
-                            NSPasteboard.general.setString(textToCopy, forType: .string)
-                        }) {
-                            Image(systemName: "doc.on.doc")
-                                .font(.system(size: 14))
-                        }
-                        .buttonStyle(.bordered)
-                        .controlSize(.small)
-
                         // Show in Finder button
                         if let url = videoURL {
                             Button(action: {
@@ -128,50 +116,6 @@ struct DoDetailView: View {
                     }
                     .padding(.horizontal, 16)
                     .padding(.top, 16)
-
-                    Divider()
-                        .padding(.horizontal, 16)
-
-                    // Transcription section
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Transcription")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(.secondary)
-
-                        // Main transcription text
-                        Text(doItem.enhancedText ?? doItem.text)
-                            .font(.system(size: 14))
-                            .lineSpacing(4)
-                            .textSelection(.enabled)
-                            .padding(12)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(
-                                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .fill(.thinMaterial)
-                            )
-
-                        // Show original if enhanced exists
-                        if doItem.enhancedText != nil {
-                            DisclosureGroup {
-                                Text(doItem.text)
-                                    .font(.system(size: 13))
-                                    .foregroundColor(.secondary)
-                                    .lineSpacing(3)
-                                    .textSelection(.enabled)
-                                    .padding(10)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                            .fill(Color.secondary.opacity(0.08))
-                                    )
-                            } label: {
-                                Text("Original transcription")
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 16)
 
                     // Video Description section - always show if video exists
                     if hasVideoFile {
@@ -245,18 +189,6 @@ struct DoDetailView: View {
                         .padding(.horizontal, 16)
                     }
 
-                    // Metadata footer
-                    if let modelName = doItem.transcriptionModelName {
-                        HStack(spacing: 8) {
-                            Image(systemName: "cpu")
-                                .font(.system(size: 10))
-                            Text(modelName)
-                                .font(.system(size: 11))
-                        }
-                        .foregroundColor(.secondary.opacity(0.7))
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 16)
-                    }
                 }
             }
         }
