@@ -140,23 +140,26 @@ class Recorder: NSObject, ObservableObject {
         }
     }
 
-    func startRecording(toOutputFile url: URL, captureSystemAudio: Bool = false, systemAudioOutputURL: URL? = nil) async throws {
+    func startRecording(toOutputFile url: URL, captureSystemAudio: Bool = false, systemAudioOutputURL: URL? = nil, captureMicAudio: Bool = true) async throws {
         deviceManager.isRecordingActive = true
 
-        let currentDeviceID = deviceManager.getCurrentDevice()
-        let lastDeviceID = UserDefaults.standard.string(forKey: "lastUsedMicrophoneDeviceID")
+        // Only show mic notification if actually recording mic
+        if captureMicAudio {
+            let currentDeviceID = deviceManager.getCurrentDevice()
+            let lastDeviceID = UserDefaults.standard.string(forKey: "lastUsedMicrophoneDeviceID")
 
-        if String(currentDeviceID) != lastDeviceID {
-            if let deviceName = deviceManager.availableDevices.first(where: { $0.id == currentDeviceID })?.name {
-                await MainActor.run {
-                    NotificationManager.shared.showNotification(
-                        title: "Using: \(deviceName)",
-                        type: .info
-                    )
+            if String(currentDeviceID) != lastDeviceID {
+                if let deviceName = deviceManager.availableDevices.first(where: { $0.id == currentDeviceID })?.name {
+                    await MainActor.run {
+                        NotificationManager.shared.showNotification(
+                            title: "Using: \(deviceName)",
+                            type: .info
+                        )
+                    }
                 }
             }
+            UserDefaults.standard.set(String(currentDeviceID), forKey: "lastUsedMicrophoneDeviceID")
         }
-        UserDefaults.standard.set(String(currentDeviceID), forKey: "lastUsedMicrophoneDeviceID")
 
         hasDetectedAudioInCurrentSession = false
         isCapturingSystemAudio = captureSystemAudio
@@ -166,6 +169,22 @@ class Recorder: NSObject, ObservableObject {
         let deviceID = deviceManager.getCurrentDevice()
 
         do {
+            // System audio only mode (for video recordings)
+            if captureSystemAudio && !captureMicAudio {
+                guard let sysURL = systemAudioOutputURL else {
+                    throw NSError(domain: "Recorder", code: 1, userInfo: [NSLocalizedDescriptionKey: "System audio URL required"])
+                }
+                systemAudioURL = sysURL
+                micAudioURL = nil
+
+                let capture = SystemAudioCaptureService()
+                systemAudioCapture = capture
+                try await capture.startCapture(toURL: sysURL)
+
+                logger.info("Started system audio only recording")
+                return
+            }
+
             let coreAudioRecorder = CoreAudioRecorder()
             recorder = coreAudioRecorder
 

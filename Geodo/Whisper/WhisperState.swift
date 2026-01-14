@@ -215,9 +215,9 @@ class WhisperState: NSObject, ObservableObject {
                             let micPermanentURL = self.recordingsDirectory.appendingPathComponent(micFileName)
                             self.recordedFile = micPermanentURL
 
-                            // For notes mode (meetings), also prepare system audio URL
+                            // Prepare system audio URL for Notes and Dos modes (not for Quotes)
                             var systemAudioURL: URL? = nil
-                            if self.isNotesMode {
+                            if self.isNotesMode || self.isDosMode {
                                 let systemFileName = "\(sessionID)_system.wav"
                                 systemAudioURL = self.recordingsDirectory.appendingPathComponent(systemFileName)
                                 self.recordedSystemAudioFile = systemAudioURL
@@ -255,10 +255,16 @@ class WhisperState: NSObject, ObservableObject {
                                 }
                             }
 
+                            // Notes: mic + system audio
+                            // Quotes: mic only
+                            // Dos (video): system audio only (no mic, no transcription)
+                            let shouldCaptureSystemAudio = self.isNotesMode || self.isDosMode
+                            let shouldCaptureMicAudio = !self.isDosMode
                             try await self.recorder.startRecording(
                                 toOutputFile: micPermanentURL,
-                                captureSystemAudio: self.isNotesMode,
-                                systemAudioOutputURL: systemAudioURL
+                                captureSystemAudio: shouldCaptureSystemAudio,
+                                systemAudioOutputURL: systemAudioURL,
+                                captureMicAudio: shouldCaptureMicAudio
                             )
 
                             await MainActor.run {
@@ -316,6 +322,12 @@ class WhisperState: NSObject, ObservableObject {
     }
     
     private func transcribeAudio(on transcription: Transcription) async {
+        // For Dos mode (video recordings), skip transcription and save directly
+        if isDosMode {
+            await saveDosWithoutTranscription(transcription: transcription)
+            return
+        }
+
         guard let urlString = transcription.audioFileURL, let url = URL(string: urlString) else {
             logger.error("❌ Invalid audio file URL in transcription object.")
             await MainActor.run {
@@ -481,12 +493,16 @@ class WhisperState: NSObject, ObservableObject {
                     logger.warning("⚠️ No video file URL recorded")
                 }
 
+                // For Dos, we only have system audio (no mic was recorded)
+                // Note: This code path is now unreachable since Dos mode is handled by saveDosWithoutTranscription
+                let systemAudioURLString = recordedSystemAudioFile?.absoluteString
+
                 let doItem = Do(
                     text: transcription.text,
                     duration: transcription.duration,
                     enhancedText: transcription.enhancedText,
                     videoFileURL: validVideoURL,
-                    audioFileURL: transcription.audioFileURL,
+                    audioFileURL: systemAudioURLString,
                     thumbnailData: thumbnailData,
                     transcriptionModelName: transcription.transcriptionModelName,
                     aiEnhancementModelName: transcription.aiEnhancementModelName,
@@ -619,6 +635,77 @@ class WhisperState: NSObject, ObservableObject {
 
         await self.dismissMiniRecorder()
 
+        shouldCancelRecording = false
+    }
+
+    /// Save Do without transcription (for video recordings that only capture system audio)
+    private func saveDosWithoutTranscription(transcription: Transcription) async {
+        await MainActor.run {
+            SoundManager.shared.playStopSound()
+        }
+
+        // Validate video file exists and has content
+        var validVideoURL: String? = nil
+        var thumbnailData: Data? = nil
+
+        if let videoURL = recordedVideoFile {
+            let attributes = try? FileManager.default.attributesOfItem(atPath: videoURL.path)
+            let fileSize = attributes?[.size] as? Int64 ?? 0
+            if fileSize > 0 {
+                validVideoURL = videoURL.absoluteString
+                thumbnailData = screenRecordingService.extractThumbnail(from: videoURL)
+                logger.info("✅ Video file validated: \(fileSize) bytes")
+            } else {
+                logger.warning("⚠️ Video file is empty or missing, not saving video URL")
+            }
+        } else {
+            logger.warning("⚠️ No video file URL recorded")
+        }
+
+        // Get system audio URL
+        let systemAudioURLString = recordedSystemAudioFile?.absoluteString
+
+        // Get video duration for the Do
+        var videoDuration: TimeInterval = 0
+        if let videoURL = recordedVideoFile {
+            let asset = AVURLAsset(url: videoURL)
+            videoDuration = (try? CMTimeGetSeconds(await asset.load(.duration))) ?? 0
+        }
+
+        let doItem = Do(
+            text: "", // No transcription
+            duration: videoDuration,
+            enhancedText: nil,
+            videoFileURL: validVideoURL,
+            audioFileURL: systemAudioURLString,
+            thumbnailData: thumbnailData,
+            transcriptionModelName: nil,
+            aiEnhancementModelName: nil,
+            promptName: nil,
+            transcriptionDuration: nil,
+            enhancementDuration: nil,
+            videoDescriptionStatus: nil
+        )
+        modelContext.insert(doItem)
+        try? modelContext.save()
+
+        // Delete the temporary Transcription object
+        modelContext.delete(transcription)
+        try? modelContext.save()
+
+        // Post notification for Dos UI to refresh
+        NotificationCenter.default.post(name: .doCreated, object: doItem)
+
+        // Reset dos mode and video file
+        isDosMode = false
+        recordedVideoFile = nil
+        recordedSystemAudioFile = nil
+
+        await MainActor.run {
+            recordingState = .idle
+        }
+
+        await dismissMiniRecorder()
         shouldCancelRecording = false
     }
 

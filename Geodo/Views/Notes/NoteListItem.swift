@@ -8,7 +8,7 @@ struct NoteListItem: View {
     let onToggleCheck: () -> Void
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(alignment: .center, spacing: 12) {
             Toggle("", isOn: Binding(
                 get: { isChecked },
                 set: { _ in onToggleCheck() }
@@ -17,61 +17,93 @@ struct NoteListItem: View {
             .labelsHidden()
 
             VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    // Meeting indicator
-                    if note.isMeeting {
-                        HStack(spacing: 3) {
-                            Image(systemName: "person.2.fill")
-                                .font(.system(size: 9))
-                            if let sourceApp = note.sourceApp {
-                                Text(sourceApp)
-                                    .font(.system(size: 9, weight: .medium))
-                            }
-                        }
-                        .foregroundColor(.accentColor)
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 2)
-                        .background(
-                            RoundedRectangle(cornerRadius: 4, style: .continuous)
-                                .fill(Color.accentColor.opacity(0.15))
-                        )
-                    }
+                // Title - first line of note
+                Text(noteTitle)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.primary)
+                    .lineLimit(1)
 
-                    Text(note.timestamp, format: .dateTime.month(.abbreviated).day().hour().minute())
-                        .font(.system(size: 11, weight: .medium))
+                // Preview text
+                if let preview = notePreview {
+                    Text(preview)
+                        .font(.system(size: 12))
                         .foregroundColor(.secondary)
-                    Spacer()
-                    if note.duration > 0 {
-                        Text(note.duration.formatTiming())
-                            .font(.system(size: 10, weight: .medium))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 3)
-                            .background(
-                                RoundedRectangle(cornerRadius: 4, style: .continuous)
-                                    .fill(Color.secondary.opacity(0.1))
-                            )
-                            .foregroundColor(.secondary)
-                    }
+                        .lineLimit(1)
                 }
 
-                Text(note.enhancedText ?? note.text)
-                    .font(.system(size: 12, weight: .regular))
-                    .lineLimit(2)
-                    .foregroundColor(.cream)
+                // Metadata row
+                HStack(spacing: 6) {
+                    Text(relativeTimestamp)
+                        .font(.system(size: 11))
+                        .foregroundColor(Color(NSColor.tertiaryLabelColor))
+
+                    // Audio indicators
+                    if hasMicAudio || hasSystemAudio {
+                        HStack(spacing: 4) {
+                            if hasMicAudio {
+                                Image(systemName: "mic.fill")
+                                    .font(.system(size: 9))
+                            }
+                            if hasSystemAudio {
+                                Image(systemName: "speaker.wave.2.fill")
+                                    .font(.system(size: 9))
+                            }
+                        }
+                        .foregroundColor(Color(NSColor.tertiaryLabelColor))
+                    }
+
+                    if note.isMeeting, let sourceApp = note.sourceApp {
+                        Text(sourceApp)
+                            .font(.system(size: 10))
+                            .foregroundColor(Color(NSColor.tertiaryLabelColor))
+                    }
+
+                    if note.duration > 0 {
+                        Text(note.duration.formatTiming())
+                            .font(.system(size: 10))
+                            .foregroundColor(Color(NSColor.tertiaryLabelColor))
+                    }
+                }
             }
+
+            Spacer(minLength: 0)
         }
-        .padding(10)
-        .background {
-            if isSelected {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(Color(NSColor.selectedContentBackgroundColor).opacity(0.3))
-            } else {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(.thinMaterial)
-            }
-        }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .fill(isSelected ? Color.accentColor.opacity(0.12) : Color.clear)
+        )
         .contentShape(Rectangle())
         .onTapGesture { onSelect() }
+    }
+
+    private var noteTitle: String {
+        let text = note.enhancedText ?? note.text
+        let firstLine = text.components(separatedBy: .newlines).first ?? text
+        return String(firstLine.prefix(60))
+    }
+
+    private var notePreview: String? {
+        let text = note.enhancedText ?? note.text
+        let lines = text.components(separatedBy: .newlines)
+        guard lines.count > 1 else { return nil }
+        let preview = lines.dropFirst().joined(separator: " ").trimmingCharacters(in: .whitespaces)
+        return preview.isEmpty ? nil : String(preview.prefix(80))
+    }
+
+    private var relativeTimestamp: String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter.localizedString(for: note.timestamp, relativeTo: Date())
+    }
+
+    private var hasMicAudio: Bool {
+        note.audioFileURL != nil && !note.audioFileURL!.isEmpty
+    }
+
+    private var hasSystemAudio: Bool {
+        note.systemAudioFileURL != nil && !note.systemAudioFileURL!.isEmpty
     }
 }
 
@@ -81,9 +113,8 @@ struct NoteCheckboxStyle: ToggleStyle {
             configuration.isOn.toggle()
         }) {
             Image(systemName: configuration.isOn ? "checkmark.circle.fill" : "circle")
-                .symbolRenderingMode(.hierarchical)
-                .foregroundColor(configuration.isOn ? Color(NSColor.controlAccentColor) : .secondary)
-                .font(.system(size: 18))
+                .font(.system(size: 16))
+                .foregroundColor(configuration.isOn ? .accentColor : Color(NSColor.quaternaryLabelColor))
         }
         .buttonStyle(.plain)
     }

@@ -1,6 +1,122 @@
 import SwiftUI
 import SwiftData
 
+// MARK: - Date Grouping
+
+enum DateGroup: Hashable, Comparable {
+    case today
+    case yesterday
+    case thisWeek
+    case earlierThisMonth
+    case month(year: Int, month: Int)
+
+    var displayTitle: String {
+        switch self {
+        case .today:
+            return "Today"
+        case .yesterday:
+            return "Yesterday"
+        case .thisWeek:
+            return "This Week"
+        case .earlierThisMonth:
+            return "Earlier this Month"
+        case .month(let year, let month):
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "MMMM yyyy"
+            var components = DateComponents()
+            components.year = year
+            components.month = month
+            components.day = 1
+            if let date = Calendar.current.date(from: components) {
+                return dateFormatter.string(from: date)
+            }
+            return "\(month)/\(year)"
+        }
+    }
+
+    static func < (lhs: DateGroup, rhs: DateGroup) -> Bool {
+        func order(_ group: DateGroup) -> Int {
+            switch group {
+            case .today: return 0
+            case .yesterday: return 1
+            case .thisWeek: return 2
+            case .earlierThisMonth: return 3
+            case .month: return 4
+            }
+        }
+
+        let lhsOrder = order(lhs)
+        let rhsOrder = order(rhs)
+
+        if lhsOrder != rhsOrder {
+            return lhsOrder < rhsOrder
+        }
+
+        if case .month(let lYear, let lMonth) = lhs,
+           case .month(let rYear, let rMonth) = rhs {
+            if lYear != rYear {
+                return lYear > rYear
+            }
+            return lMonth > rMonth
+        }
+
+        return false
+    }
+}
+
+extension Date {
+    func dateGroup() -> DateGroup {
+        let calendar = Calendar.current
+        let now = Date()
+
+        if calendar.isDateInToday(self) {
+            return .today
+        }
+
+        if calendar.isDateInYesterday(self) {
+            return .yesterday
+        }
+
+        let weekOfYear = calendar.component(.weekOfYear, from: self)
+        let currentWeekOfYear = calendar.component(.weekOfYear, from: now)
+        let year = calendar.component(.year, from: self)
+        let currentYear = calendar.component(.year, from: now)
+
+        if weekOfYear == currentWeekOfYear && year == currentYear {
+            return .thisWeek
+        }
+
+        let month = calendar.component(.month, from: self)
+        let currentMonth = calendar.component(.month, from: now)
+
+        if month == currentMonth && year == currentYear {
+            return .earlierThisMonth
+        }
+
+        return .month(year: year, month: month)
+    }
+}
+
+// MARK: - Section Header
+
+struct NoteSectionHeader: View {
+    let title: String
+
+    var body: some View {
+        HStack {
+            Text(title)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.secondary)
+            Spacer()
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.95))
+    }
+}
+
+// MARK: - Notes View
+
 struct NotesView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var searchText = ""
@@ -53,53 +169,64 @@ struct NotesView: View {
         return descriptor
     }
 
+    private var groupedNotes: [(group: DateGroup, notes: [Note])] {
+        let grouped = Dictionary(grouping: displayedNotes) { $0.timestamp.dateGroup() }
+        return grouped
+            .map { (group: $0.key, notes: $0.value.sorted { $0.timestamp > $1.timestamp }) }
+            .sorted { $0.group < $1.group }
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             // Left sidebar with notes list
             VStack(spacing: 0) {
                 // Search bar
-                HStack {
+                HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass")
-                        .foregroundColor(.secondary)
-                        .font(.system(size: 13))
-                    TextField("Search notes", text: $searchText)
-                        .textFieldStyle(PlainTextFieldStyle())
+                        .foregroundColor(Color(NSColor.tertiaryLabelColor))
+                        .font(.system(size: 12))
+                    TextField("Search", text: $searchText)
+                        .textFieldStyle(.plain)
                         .font(.system(size: 13))
                 }
-                .padding(10)
-                .background(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(.thinMaterial)
-                )
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+                .background(Color.secondary.opacity(0.06))
+                .cornerRadius(8)
                 .padding(12)
 
                 Divider()
 
                 ZStack(alignment: .bottom) {
                     if displayedNotes.isEmpty && !isLoading {
-                        VStack(spacing: 12) {
+                        VStack(spacing: 8) {
                             Image(systemName: "note.text")
-                                .font(.system(size: 40))
-                                .foregroundColor(.secondary)
-                            Text("No notes yet")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(.secondary)
-                            Text("Use tap-tap recording to save notes")
-                                .font(.system(size: 12))
-                                .foregroundColor(.secondary)
+                                .font(.system(size: 32, weight: .light))
+                                .foregroundColor(Color(NSColor.quaternaryLabelColor))
+                            Text("No notes")
+                                .font(.system(size: 13))
+                                .foregroundColor(Color(NSColor.tertiaryLabelColor))
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {
                         ScrollView {
-                            LazyVStack(spacing: 8) {
-                                ForEach(displayedNotes) { note in
-                                    NoteListItem(
-                                        note: note,
-                                        isSelected: selectedNote == note,
-                                        isChecked: selectedNotes.contains(note),
-                                        onSelect: { selectedNote = note },
-                                        onToggleCheck: { toggleSelection(note) }
-                                    )
+                            LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+                                ForEach(groupedNotes, id: \.group) { section in
+                                    Section {
+                                        ForEach(section.notes) { note in
+                                            NoteListItem(
+                                                note: note,
+                                                isSelected: selectedNote == note,
+                                                isChecked: selectedNotes.contains(note),
+                                                onSelect: { selectedNote = note },
+                                                onToggleCheck: { toggleSelection(note) }
+                                            )
+                                            .padding(.horizontal, 6)
+                                            .padding(.vertical, 2)
+                                        }
+                                    } header: {
+                                        NoteSectionHeader(title: section.group.displayTitle)
+                                    }
                                 }
 
                                 if hasMoreContent {
@@ -120,7 +247,7 @@ struct NotesView: View {
                                     .disabled(isLoading)
                                 }
                             }
-                            .padding(8)
+                            .padding(.vertical, 8)
                             .padding(.bottom, !selectedNotes.isEmpty ? 50 : 0)
                         }
                     }
