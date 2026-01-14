@@ -72,71 +72,62 @@ struct NoteDetailView: View {
     // MARK: - Header
 
     private var headerView: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
+        VStack(spacing: 12) {
+            // Top row: Title and actions
+            HStack(alignment: .center) {
+                // Title area
                 HStack(spacing: 8) {
-                    Text(note.isMeeting ? "Meeting" : "Note")
-                        .font(.system(size: 18, weight: .semibold))
+                    if note.isMeeting {
+                        Image(systemName: "person.2.fill")
+                            .font(.system(size: 14))
+                            .foregroundColor(.accentColor)
+                    }
+                    Text(note.timestamp, format: .dateTime.month(.abbreviated).day().hour().minute())
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(.primary)
 
-                    // Meeting badge with source app
-                    if note.isMeeting, let sourceApp = note.sourceApp {
-                        HStack(spacing: 4) {
-                            Image(systemName: "person.2.fill")
-                                .font(.system(size: 10))
-                            Text(sourceApp)
-                                .font(.system(size: 10, weight: .medium))
-                        }
-                        .foregroundColor(.accentColor)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 3)
-                        .background(
-                            RoundedRectangle(cornerRadius: 5, style: .continuous)
-                                .fill(Color.accentColor.opacity(0.15))
-                        )
+                    if let sourceApp = note.sourceApp {
+                        Text("·")
+                            .foregroundColor(.secondary)
+                        Text(sourceApp)
+                            .font(.system(size: 13))
+                            .foregroundColor(.secondary)
                     }
 
-                    // Enhancement status badge
+                    // Enhancement status
                     if note.enhancementStatus == "processing" || isEnhancing {
                         HStack(spacing: 4) {
                             ProgressView()
                                 .controlSize(.mini)
                             Text("Enhancing...")
-                                .font(.system(size: 10, weight: .medium))
+                                .font(.system(size: 11))
                         }
                         .foregroundColor(.orange)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 3)
-                        .background(
-                            RoundedRectangle(cornerRadius: 5, style: .continuous)
-                                .fill(Color.orange.opacity(0.15))
-                        )
                     }
                 }
-                Text(note.timestamp, format: .dateTime.month(.wide).day().year().hour().minute())
-                    .font(.system(size: 12))
-                    .foregroundColor(.secondary)
+
+                Spacer()
+
+                // Actions row
+                HStack(spacing: 8) {
+                    viewModePicker
+
+                    enhanceMenuButton
+
+                    exportMenuButton
+
+                    Button(action: {
+                        let textToCopy = note.enhancedText ?? note.text
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(textToCopy, forType: .string)
+                    }) {
+                        Image(systemName: "doc.on.doc")
+                            .font(.system(size: 12))
+                    }
+                    .buttonStyle(.borderless)
+                    .help("Copy")
+                }
             }
-            Spacer()
-
-            // View mode picker
-            viewModePicker
-
-            // Enhance menu button
-            enhanceMenuButton
-
-            // Export menu button
-            exportMenuButton
-
-            // Copy button
-            Button(action: {
-                let textToCopy = note.enhancedText ?? note.text
-                NSPasteboard.general.clearContents()
-                NSPasteboard.general.setString(textToCopy, forType: .string)
-            }) {
-                Label("Copy", systemImage: "doc.on.doc")
-                    .font(.system(size: 12, weight: .medium))
-            }
-            .buttonStyle(.bordered)
         }
         .padding(.horizontal, 16)
         .padding(.top, 12)
@@ -189,11 +180,11 @@ struct NoteDetailView: View {
                 }
             }
         } label: {
-            Label("Enhance", systemImage: "sparkles")
-                .font(.system(size: 12, weight: .medium))
+            Image(systemName: "sparkles")
+                .font(.system(size: 12))
         }
         .menuStyle(.borderlessButton)
-        .frame(width: 90)
+        .help("Enhance")
         .disabled(isEnhancing)
     }
 
@@ -217,11 +208,11 @@ struct NoteDetailView: View {
                 Label("Share...", systemImage: "square.and.arrow.up")
             }
         } label: {
-            Label("Export", systemImage: "square.and.arrow.up")
-                .font(.system(size: 12, weight: .medium))
+            Image(systemName: "square.and.arrow.up")
+                .font(.system(size: 12))
         }
         .menuStyle(.borderlessButton)
-        .frame(width: 80)
+        .help("Export")
     }
 
     // MARK: - Content
